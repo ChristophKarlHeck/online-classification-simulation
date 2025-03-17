@@ -1,9 +1,89 @@
 import argparse
 import ast 
 import numpy as np
+import matplotlib
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
 import pandas as pd
 import torch
 import os
+
+def plot_data(df_classified: pd.DataFrame, threshold: float) -> None:
+    
+    plant_id=999
+
+    #------------------Prepare Data for Plot---------------------------------------#
+    window_size = 100 # 100 = 10min
+    df_classified["ch0_smoothed"] = df_classified["classification_ch0"].rolling(window=window_size, min_periods=1).mean()
+    df_classified["ch1_smoothed"] = df_classified["classification_ch1"].rolling(window=window_size, min_periods=1).mean()
+    df_classified['datetime'] = pd.to_datetime(df_classified['datetime'], format='%Y-%m-%d %H:%M:%S', errors='coerce')
+    df_classified['datetime'] = df_classified['datetime'] + pd.Timedelta(hours=1)
+    df_classified['LastVoltageCh0'] = df_classified['input_normalized_ch0'].apply(lambda x: x[-1])
+    df_classified['LastVoltageCh1'] = df_classified['input_normalized_ch1'].apply(lambda x: x[-1])
+    df_classified["LastVoltageCh0"] = df_classified["LastVoltageCh0"].rolling(window=window_size, min_periods=1).mean()
+    df_classified["LastVoltageCh1"] = df_classified["LastVoltageCh1"].rolling(window=window_size, min_periods=1).mean()
+
+    fig_width = 5.90666  # Width in inches
+    aspect_ratio = 0.618  # Example aspect ratio (height/width)
+    fig_height = fig_width * aspect_ratio
+
+    fig, axs = plt.subplots(2, 1, figsize=(fig_width, 8), sharex=True)
+
+    time_fmt = mdates.DateFormatter('%H:%M')
+
+    for ax in axs:
+        ax.grid(True, linestyle='dashed', linewidth=0.5, alpha=0.6)
+        ax.xaxis.set_major_formatter(time_fmt)  # Format x-axis as hours
+        ax.tick_params(axis='x', labelsize=10)  # Set font size to 10
+        plt.setp(ax.get_xticklabels(), fontsize=10, rotation=0, ha='center')
+
+    # Scatter plot for classification
+    axs[0].plot(df_classified['datetime'], df_classified["ch0_smoothed"], label="CH0", color="blue")
+    axs[0].plot(df_classified['datetime'], df_classified["ch1_smoothed"], label="CH1", color="green")
+
+    axs[0].axhline(y=threshold, color="red", linestyle="--", linewidth=1, label=f"Threshold: {threshold}")
+
+    axs[0].fill_between(df_classified['datetime'], 0, 1.0, 
+                    where=(df_classified["ch0_smoothed"] > threshold) & (df_classified["ch1_smoothed"] > threshold), 
+                    color='gray', alpha=0.3, label="Stimulus prediction")
+
+
+    axs[0].fill_between(
+        df_classified['datetime'], 0, 1.0, 
+        where=(df_classified["ground_truth"] == 1), 
+        color='limegreen', alpha=0.3, label="Stimulus application"
+    )
+
+
+    # Ensure y-axis limits and set explicit tick marks
+    axs[0].set_ylim(0, 1.05)
+    axs[0].set_yticks([0, 0.25, 0.5, 0.75, 1])  # Explicitly set y-ticks
+    axs[0].set_ylabel("Heat Phase Probability",fontsize=10)
+    axs[0].tick_params(axis='y', labelsize=10) 
+
+    axs[0].set_title(f"Online Heat Phase Classification Using Ivy Data (ID {plant_id})", fontsize=10, pad=40)
+    axs[0].legend(fontsize=8, loc="upper center", bbox_to_anchor=(0.5, 1.25), ncol=3, framealpha=0.7)
+
+
+    # Line plot for interpolated electric potential
+    axs[1].plot(df_classified['datetime'], df_classified['LastVoltageCh0'], label="CH0", color="blue")
+    axs[1].plot(df_classified['datetime'], df_classified['LastVoltageCh1'], label="CH1", color="green", linestyle="dashed")
+
+    # Labels and Titles
+    axs[1].tick_params(axis='y', labelsize=10)
+    axs[1].set_ylabel("EDP [scaled]",fontsize=10)
+    axs[1].set_title("Normalized CNN Input via Adjusted Min-Max Scaling",fontsize=10)
+    axs[1].legend(fontsize=8, loc="lower right")
+
+    # Improve spacing to prevent label cutoff
+    fig.tight_layout()
+
+    # Save figure in PGF format with proper bounding box
+    #plt.savefig(f"minMaxOnlineClassificationAdjusted{plant_id}Shifted.pgf", format="pgf", bbox_inches="tight", pad_inches=0.05)
+    #plot_path = os.path.join(save_dir, f"{prefix}_classified_plot.png")
+    #plt.savefig(plot_path, dpi=300)
+    plt.show()
+
 
 def load_classifier(path_to_trained_model: str):
     """Loads a trained PyTorch model dynamically from a `.pt` file."""
@@ -69,7 +149,7 @@ def apply_normalization(arr: np.ndarray, normalization: str) -> np.ndarray:
 
 def online_experiment(classifier, df_input_not_normalized: pd.DataFrame, normalization: str) -> pd.DataFrame:
 
-    printf("Running Online Experiment")
+    print("Running Online Experiment")
 
     df = df_input_not_normalized.copy()
     df["classification_ch0"] = None
@@ -102,8 +182,6 @@ def online_experiment(classifier, df_input_not_normalized: pd.DataFrame, normali
     return df
 
 
-
-
 def main():
     parser = argparse.ArgumentParser(description="Preprocess CSV files.")
     parser.add_argument("--data_dir", required=True, help="Directory with raw files.")
@@ -119,9 +197,8 @@ def main():
 
     classifier = load_classifier(classifier_dir)
     df_input_not_normalized = load_data(data_dir, prefix)
-    result = online_experiment(classifier, df_input_not_normalized, normalization_method)
-    print(result.columns)
-    
+    df_result = online_experiment(classifier, df_input_not_normalized, normalization_method)
+    plot_data(df_result, 0.6)
 
 
 
