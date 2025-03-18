@@ -8,6 +8,8 @@ import pandas as pd
 import torch
 import os
 
+from online_min_max import OnlineMinMax
+
 def plot_data(df_classified: pd.DataFrame, threshold: float) -> None:
     
     plant_id=999
@@ -139,11 +141,27 @@ def adjusted_min_max(arr: np.ndarray) -> np.ndarray:
     arr = np.array(arr, dtype=np.float32)
     return (arr - min_val) / (max_val - min_val)
 
+def min_max(arr: np.ndarray, min_val: float, max_val: float, factor: float) -> np.ndarray:
+    """Adjusted Min-Max Normalization"""
 
-def apply_normalization(arr: np.ndarray, normalization: str) -> np.ndarray:
+    arr = np.array(arr, dtype=np.float32)
+    return ((arr - min_val) / (max_val - min_val))*factor
+
+
+online_min_max_ch0 = OnlineMinMaxCh0(600)
+online_min_max_ch1 = OnlineMinMaxCh1(600)
+
+def apply_normalization(arr: np.ndarray, normalization: str, channel: bool) -> np.ndarray:
     """Applies the selected normalization method."""
     if normalization == "adjusted_min_max":
         return adjusted_min_max(arr)
+    elif normalization == "min_max":
+        if not channel:
+            online_min_max_ch0.update(arr)
+            return min_max(arr, online_min_max_ch0.get_min_value(), online_min_max_ch0.get_max_value(), 1000)
+        else:
+            online_min_max_ch1.update(arr)
+            return min_max(arr, online_min_max_ch1.get_min_value(), online_min_max_ch1.get_max_value(), 1000)
     else:
         raise ValueError(f"Unsupported normalization method: {normalization}")
 
@@ -160,7 +178,7 @@ def online_experiment(classifier, df_input_not_normalized: pd.DataFrame, normali
     for index, row in df.iterrows():
 
         if isinstance(row["input_not_normalized_ch0"], (list, np.ndarray)):
-            normalized_ch0 = apply_normalization(np.array(row["input_not_normalized_ch0"]), normalization)
+            normalized_ch0 = apply_normalization(np.array(row["input_not_normalized_ch0"]), normalization, False)
             input_tensor_ch0 = torch.tensor(normalized_ch0, dtype=torch.float32).unsqueeze(0).unsqueeze(0)
             with torch.no_grad():
                 prediction_ch0 = classifier(input_tensor_ch0)
@@ -171,7 +189,7 @@ def online_experiment(classifier, df_input_not_normalized: pd.DataFrame, normali
             df.at[index, "input_normalized_ch0"] = normalized_ch0.tolist()
 
         if isinstance(row["input_not_normalized_ch1"], (list, np.ndarray)):
-            normalized_ch1 = apply_normalization(np.array(row["input_not_normalized_ch1"]), normalization)
+            normalized_ch1 = apply_normalization(np.array(row["input_not_normalized_ch1"]), normalization, True)
             input_tensor_ch1 = torch.tensor(normalized_ch1, dtype=torch.float32).unsqueeze(0).unsqueeze(0)
             with torch.no_grad():
                 prediction_ch1 = classifier(input_tensor_ch1)
