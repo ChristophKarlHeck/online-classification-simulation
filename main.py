@@ -10,7 +10,7 @@ import os
 
 from online_min_max import OnlineMinMax
 
-def plot_data(df_classified: pd.DataFrame, threshold: float) -> None:
+def plot_data(df_classified: pd.DataFrame, threshold: float, normalization: str) -> None:
     
     plant_id=999
 
@@ -74,7 +74,7 @@ def plot_data(df_classified: pd.DataFrame, threshold: float) -> None:
     # Labels and Titles
     axs[1].tick_params(axis='y', labelsize=10)
     axs[1].set_ylabel("EDP [scaled]",fontsize=10)
-    axs[1].set_title("Normalized CNN Input via Adjusted Min-Max Scaling",fontsize=10)
+    axs[1].set_title(f"Normalized CNN Input via {normalization}",fontsize=10)
     axs[1].legend(fontsize=8, loc="lower right")
 
     # Improve spacing to prevent label cutoff
@@ -141,6 +141,9 @@ def adjusted_min_max(arr: np.ndarray) -> np.ndarray:
     arr = np.array(arr, dtype=np.float32)
     return (arr - min_val) / (max_val - min_val)
 
+
+online_min_max_ch0 = OnlineMinMax(600)
+online_min_max_ch1 = OnlineMinMax(600)
 def min_max(arr: np.ndarray, min_val: float, max_val: float, factor: float) -> np.ndarray:
     """Adjusted Min-Max Normalization"""
 
@@ -148,22 +151,41 @@ def min_max(arr: np.ndarray, min_val: float, max_val: float, factor: float) -> n
     return ((arr - min_val) / (max_val - min_val))*factor
 
 
-online_min_max_ch0 = OnlineMinMaxCh0(600)
-online_min_max_ch1 = OnlineMinMaxCh1(600)
+def z_score(arr: np.ndarray, factor: float = 1.0) -> np.ndarray:
+    """
+    Applies z-score normalization to the array and scales it by the given factor.
+    """
+    arr = np.array(arr, dtype=np.float32)
+    mean_val = np.mean(arr)
+    std_val = np.std(arr)
+    
+    if std_val == 0:
+        return np.zeros_like(arr)
+    
+    return ((arr - mean_val) / std_val) * factor
+
 
 def apply_normalization(arr: np.ndarray, normalization: str, channel: bool) -> np.ndarray:
     """Applies the selected normalization method."""
     if normalization == "adjusted_min_max":
         return adjusted_min_max(arr)
-    elif normalization == "min_max":
+    elif normalization == "min-max-sliding-window-60-min":
         if not channel:
             online_min_max_ch0.update(arr)
             return min_max(arr, online_min_max_ch0.get_min_value(), online_min_max_ch0.get_max_value(), 1000)
         else:
             online_min_max_ch1.update(arr)
             return min_max(arr, online_min_max_ch1.get_min_value(), online_min_max_ch1.get_max_value(), 1000)
+
+    elif normalization == "min-max":
+        return min_max(arr, -10, 10.0, 1000)
+    
+    elif normalization == "z-score":
+        return z_score(arr, 1000)
+
     else:
         raise ValueError(f"Unsupported normalization method: {normalization}")
+
 
 def online_experiment(classifier, df_input_not_normalized: pd.DataFrame, normalization: str) -> pd.DataFrame:
 
@@ -182,7 +204,6 @@ def online_experiment(classifier, df_input_not_normalized: pd.DataFrame, normali
             input_tensor_ch0 = torch.tensor(normalized_ch0, dtype=torch.float32).unsqueeze(0).unsqueeze(0)
             with torch.no_grad():
                 prediction_ch0 = classifier(input_tensor_ch0)
-
             # Extract the second value from the prediction list ([prob_class0, prob_class1])
             df.at[index, "classification_ch0"] = prediction_ch0.flatten().tolist()[1]
             # Use .at[] to store the list as a single object in the cell
@@ -216,7 +237,8 @@ def main():
     classifier = load_classifier(classifier_dir)
     df_input_not_normalized = load_data(data_dir, prefix)
     df_result = online_experiment(classifier, df_input_not_normalized, normalization_method)
-    plot_data(df_result, 0.6)
+    print(df_result.head())
+    plot_data(df_result, 0.6, normalization_method)
 
 
 
