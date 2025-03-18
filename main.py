@@ -173,7 +173,7 @@ def z_score(arr: np.ndarray, factor: float = 1.0, mean_val: Optional[float] = No
 
 def apply_normalization(arr: np.ndarray, normalization: str, channel: bool) -> np.ndarray:
     """Applies the selected normalization method."""
-    if normalization == "adjusted_min_max":
+    if normalization == "adjusted-min-max":
         return adjusted_min_max(arr)
     elif normalization == "min-max-sliding-window-60-min":
         if not channel:
@@ -252,7 +252,7 @@ def main():
     df_input_not_normalized = load_data(data_dir, prefix)
     df_result = online_experiment(classifier, df_input_not_normalized, normalization_method)
     print(df_result.head())
-    plot_data(df_result, 0.6, normalization_method)
+    plot_data(df_result, 0.8, normalization_method)
 
 
 
