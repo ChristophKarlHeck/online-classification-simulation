@@ -109,7 +109,7 @@ def plot_model_input(df):
     plt.show()
 
 # Read files from all training_data directories
-path_pattern = "/home/chris/experiment_data/*/training_data_z_score"
+path_pattern = "/home/chris/experiment_data/*/training_data"
 training_dirs = glob.glob(path_pattern)
 df_list = []
 # Loop through each training_data directory
@@ -142,13 +142,15 @@ class Conv1DModel(pl.LightningModule):
         super().__init__()
         self.model_name = "CNN"
 
+        self.save_hyperparameters()
+
         self.conv1d_1 = nn.Conv1d(input_channels, output_channels, kernel_size)
         self.pool = nn.MaxPool1d(3, stride=3) # window size 3, how far windows slided 3
 
         flattened_size = self._compute_flattened_size(input_channels, output_channels, kernel_size)
 
-        self.linear = nn.Linear(flattened_size, 32, bias=False) # fully connected layer
-        self.output = nn.Linear(32, 2, bias=False)
+        self.linear = nn.Linear(flattened_size, 48, bias=False) # fully connected layer
+        self.output = nn.Linear(48, 2, bias=False)
         self.loss_fn = nn.CrossEntropyLoss()
         self.accuracy = torchmetrics.Accuracy(task="multiclass", num_classes=2)
         self.f1_score = torchmetrics.F1Score(task="multiclass", num_classes=2)
@@ -266,7 +268,7 @@ val_loader = DataLoader(val_dataset, batch_size=8, num_workers=7)
 test_loader = DataLoader(test_dataset, batch_size=8, num_workers=7)
 
 # Train the Model
-model = Conv1DModel(input_channels=1, output_channels=32, kernel_size=3, lr=0.00036055106593033375)
+model = Conv1DModel(input_channels=1, output_channels=32, kernel_size=5, lr=0.0007503666240513933)
 
 # Define checkpoint callback
 checkpoint_callback = ModelCheckpoint(
@@ -275,7 +277,7 @@ checkpoint_callback = ModelCheckpoint(
     save_top_k=1,        # Save only the best model
     filename="best_model-{epoch:02d}-{val_loss:.4f}"
 )
-trainer = pl.Trainer(max_epochs=100, callbacks=[checkpoint_callback], enable_progress_bar=True)
+trainer = pl.Trainer(max_epochs=300, callbacks=[checkpoint_callback], enable_progress_bar=True)
 trainer.fit(model, train_loader, val_loader)
 
 #Retrieve best model path and score
@@ -289,14 +291,15 @@ model = Conv1DModel.load_from_checkpoint(
     best_model_path,
     input_channels=1,
     output_channels=32,
-    kernel_size=3,
-    lr=0.00036055106593033375)
+    kernel_size=5,
+    lr=0.0007503666240513933)
 
 trainer.test(model, test_loader)
 
 model.eval()
 
-torch.save(model, "60-min-max-model.pt")
+model_scripted = torch.jit.script(model) # Export to TorchScript
+model_scripted.save('model_scripted.pt') 
 
 # Example Input
 final_example_input = (torch.randn(1, 1, 100),)  # [batch_size, input_channels, seq_length]

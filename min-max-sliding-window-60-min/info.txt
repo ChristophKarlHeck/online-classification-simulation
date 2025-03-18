@@ -1,1 +1,3 @@
-accuracy ~ 0.84
+test_accuracy         0.7674418687820435
+test_f1_score         0.7674418687820435
+test_loss           0.5401369333267212
