@@ -8,7 +8,12 @@ import pandas as pd
 import torch
 import os
 
-from online_min_max import OnlineMinMax
+from online_window import OnlineWindow
+from typing import Optional
+
+online_window_ch0 = OnlineWindow(600)
+online_window_ch1 = OnlineWindow(600)
+factor = 1000
 
 def plot_data(df_classified: pd.DataFrame, threshold: float, normalization: str) -> None:
     
@@ -142,8 +147,6 @@ def adjusted_min_max(arr: np.ndarray) -> np.ndarray:
     return (arr - min_val) / (max_val - min_val)
 
 
-online_min_max_ch0 = OnlineMinMax(600)
-online_min_max_ch1 = OnlineMinMax(600)
 def min_max(arr: np.ndarray, min_val: float, max_val: float, factor: float) -> np.ndarray:
     """Adjusted Min-Max Normalization"""
 
@@ -151,13 +154,16 @@ def min_max(arr: np.ndarray, min_val: float, max_val: float, factor: float) -> n
     return ((arr - min_val) / (max_val - min_val))*factor
 
 
-def z_score(arr: np.ndarray, factor: float = 1.0) -> np.ndarray:
+def z_score(arr: np.ndarray, factor: float = 1.0, mean_val: Optional[float] = None, std_val: Optional[float] = None) -> np.ndarray:
     """
     Applies z-score normalization to the array and scales it by the given factor.
     """
     arr = np.array(arr, dtype=np.float32)
-    mean_val = np.mean(arr)
-    std_val = np.std(arr)
+    
+    if mean_val is None:
+        mean_val = np.mean(arr)
+    if std_val is None:
+        std_val = np.std(arr)
     
     if std_val == 0:
         return np.zeros_like(arr)
@@ -171,17 +177,25 @@ def apply_normalization(arr: np.ndarray, normalization: str, channel: bool) -> n
         return adjusted_min_max(arr)
     elif normalization == "min-max-sliding-window-60-min":
         if not channel:
-            online_min_max_ch0.update(arr)
-            return min_max(arr, online_min_max_ch0.get_min_value(), online_min_max_ch0.get_max_value(), 1000)
+            online_window_ch0.update(arr)
+            return min_max(arr, online_window_ch0.get_min_value(), online_window_ch0.get_max_value(), factor)
         else:
-            online_min_max_ch1.update(arr)
-            return min_max(arr, online_min_max_ch1.get_min_value(), online_min_max_ch1.get_max_value(), 1000)
+            online_window_ch1.update(arr)
+            return min_max(arr, online_window_ch1.get_min_value(), online_window_ch1.get_max_value(), factor)
+
+    elif normalization == "z-score-sliding-window-60-min":
+        if not channel:
+            online_window_ch0.update(arr)
+            return z_score(arr, factor, online_window_ch0.get_mean(), online_window_ch0.get_std())
+        else:
+            online_window_ch1.update(arr)
+            return z_score(arr, factor, online_window_ch1.get_mean(), online_window_ch1.get_std())
 
     elif normalization == "min-max":
-        return min_max(arr, -10, 10.0, 1000)
+        return min_max(arr, -10, 10.0, factor)
     
     elif normalization == "z-score":
-        return z_score(arr, 1000)
+        return z_score(arr, factor)
 
     else:
         raise ValueError(f"Unsupported normalization method: {normalization}")

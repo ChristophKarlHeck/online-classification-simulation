@@ -1,8 +1,9 @@
 # online_min_max.py
 import math
+import numpy as np
 from typing import List
 
-class OnlineMinMax:
+class OnlineWindow:
     """
     A class to maintain a fixed-size window of float values, supporting updates
     with new values and retrieval of the current minimum and maximum within the window.
@@ -68,6 +69,36 @@ class OnlineMinMax:
             return min(self.window[:self.count + 1])
         else:
             return min(self.window)
+
+    def get_mean(self) -> float:
+        """
+        Returns the minimum value from the current window.
+        If the window is not fully populated, only considers the valid portion.
+        If no valid data exists, returns positive infinity.
+        
+        :return: The minimum float value in the window.
+        """
+        if self.count == 0:
+            return math.inf
+        if self.count < self.window_size:
+            return np.mean(self.window[:self.count + 1])
+        else:
+            return np.mean(self.window)
+
+    def get_std(self) -> float:
+        """
+        Returns the minimum value from the current window.
+        If the window is not fully populated, only considers the valid portion.
+        If no valid data exists, returns positive infinity.
+        
+        :return: The minimum float value in the window.
+        """
+        if self.count == 0:
+            return math.inf
+        if self.count < self.window_size:
+            return np.std(self.window[:self.count + 1])
+        else:
+            return np.std(self.window)
 
 # Optional: Module test code
 # if __name__ == '__main__':
