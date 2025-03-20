@@ -287,7 +287,7 @@ def main(data_dir=None, classifier_dir=None, normalization=None, prefix=None, th
         if classifier_dir is None: 
             classifier_dir = args.classifier_dir
         if normalization is None: 
-            normalization_method = args.normalization.lower()
+            normalization = args.normalization.lower()
         if prefix is None: 
             prefix = args.prefix.upper()
         if threshold is None: 
@@ -295,12 +295,12 @@ def main(data_dir=None, classifier_dir=None, normalization=None, prefix=None, th
 
     classifier = load_classifier(classifier_dir)
     df_input_not_normalized = load_data(data_dir, prefix)
-    df_result = online_experiment(classifier, df_input_not_normalized, normalization_method)
+    df_result = online_experiment(classifier, df_input_not_normalized, normalization)
 
     df_result = smooth_classification(df_result, 100)
 
     true_positive, false_positive, true_negative, false_negative = metrics(df_result, threshold)
-    plot_data(df_result, threshold, normalization_method)
+    plot_data(df_result, threshold, normalization)
 
     return true_positive, false_positive, true_negative, false_negative
 
