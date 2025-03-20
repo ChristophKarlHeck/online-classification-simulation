@@ -21,8 +21,6 @@ def plot_data(df_classified: pd.DataFrame, threshold: float, normalization: str)
 
     #------------------Prepare Data for Plot---------------------------------------#
     window_size = 100 # 100 = 10min
-    df_classified["ch0_smoothed"] = df_classified["classification_ch0"].rolling(window=window_size, min_periods=1).mean()
-    df_classified["ch1_smoothed"] = df_classified["classification_ch1"].rolling(window=window_size, min_periods=1).mean()
     df_classified['datetime'] = pd.to_datetime(df_classified['datetime'], format='%Y-%m-%d %H:%M:%S', errors='coerce')
     df_classified['datetime'] = df_classified['datetime'] + pd.Timedelta(hours=1)
     df_classified['LastVoltageCh0'] = df_classified['input_normalized_ch0'].apply(lambda x: x[-1])
@@ -91,6 +89,45 @@ def plot_data(df_classified: pd.DataFrame, threshold: float, normalization: str)
     #plt.savefig(plot_path, dpi=300)
     plt.show()
 
+def smooth_classification(df_classified: pd.DataFrame, window_size: int) -> pd.DataFrame:
+
+    df_classified["ch0_smoothed"] = df_classified["classification_ch0"].rolling(window=window_size, min_periods=1).mean()
+    df_classified["ch1_smoothed"] = df_classified["classification_ch1"].rolling(window=window_size, min_periods=1).mean()
+
+    return df_classified
+
+def metrics(df_classified: pd.DataFrame, threshold: float):
+
+    true_positive_cases =  (
+         ((df_classified["ground_truth"] == 1) & 
+          (df_classified["ch0_smoothed"] > threshold) & 
+          (df_classified["ch1_smoothed"] > threshold))
+    )
+
+    false_positive_cases =  (
+         ((df_classified["ground_truth"] == 0) & 
+          (df_classified["ch0_smoothed"] > threshold) & 
+          (df_classified["ch1_smoothed"] > threshold))
+    )
+
+    true_negative_cases =  (
+         ((df_classified["ground_truth"] == 0) & 
+          ((df_classified["ch0_smoothed"] <= threshold) |
+          (df_classified["ch1_smoothed"] <= threshold)))
+    )
+
+    false_negative_cases =  (
+         ((df_classified["ground_truth"] == 1) & 
+          ((df_classified["ch0_smoothed"] <= threshold) | 
+          (df_classified["ch1_smoothed"] <= threshold)))
+    )
+    
+    true_positive = true_positive_cases.sum()
+    false_positive = false_positive_cases.sum()
+    true_negative = true_negative_cases.sum()
+    false_negative = false_negative_cases.sum()
+
+    return true_positive, false_positive, true_negative, false_negative
 
 def load_classifier(path_to_trained_model: str):
     """Loads a trained PyTorch model dynamically from a `.pt` file."""
@@ -235,24 +272,37 @@ def online_experiment(classifier, df_input_not_normalized: pd.DataFrame, normali
     return df
 
 
-def main():
-    parser = argparse.ArgumentParser(description="Preprocess CSV files.")
-    parser.add_argument("--data_dir", required=True, help="Directory with raw files.")
-    parser.add_argument("--classifier_dir", required=True, help="Directory with trained CNN.")
-    parser.add_argument("--normalization", required=True, help="Normalization method.")
-    parser.add_argument("--prefix", required=True, help="C1, basically choose the plant.")
-    args = parser.parse_args()
-
-    data_dir = args.data_dir
-    classifier_dir = args.classifier_dir
-    normalization_method = args.normalization.lower()
-    prefix = args.prefix.upper()
+def main(data_dir=None, classifier_dir=None, normalization=None, prefix=None, threshold=None):
+    if data_dir is None or classifier_dir is None or normalization is None or prefix is None:
+        parser = argparse.ArgumentParser(description="Test forcasting methods")
+        parser.add_argument("--data_dir", required=True, type=str, help="Directory with raw files.")
+        parser.add_argument("--classifier_dir", required=True, type=str, help="Directory with trained CNN.")
+        parser.add_argument("--normalization", required=True, type=str, help="Normalization method.")
+        parser.add_argument("--prefix", required=True, type=str, help="C1, basically choose the plant.")
+        parser.add_argument("--threshold", required=False, type=float, default=0.8, help="Threshold for optimization")
+        args = parser.parse_args()
+        # Use parsed args for any parameters not passed to main()
+        if data_dir is None: 
+            data_dir = args.data_dir
+        if classifier_dir is None: 
+            classifier_dir = args.classifier_dir
+        if normalization is None: 
+            normalization_method = args.normalization.lower()
+        if prefix is None: 
+            prefix = args.prefix.upper()
+        if threshold is None: 
+            threshold = args.threshold
 
     classifier = load_classifier(classifier_dir)
     df_input_not_normalized = load_data(data_dir, prefix)
     df_result = online_experiment(classifier, df_input_not_normalized, normalization_method)
-    print(df_result.head())
-    plot_data(df_result, 0.8, normalization_method)
+
+    df_result = smooth_classification(df_result, 100)
+
+    true_positive, false_positive, true_negative, false_negative = metrics(df_result, threshold)
+    plot_data(df_result, threshold, normalization_method)
+
+    return true_positive, false_positive, true_negative, false_negative
 
 
 
