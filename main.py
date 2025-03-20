@@ -11,8 +11,8 @@ import os
 from online_window import OnlineWindow
 from typing import Optional
 
-online_window_ch0 = OnlineWindow(600)
-online_window_ch1 = OnlineWindow(600)
+online_window_ch0 = OnlineWindow(1500) #600
+online_window_ch1 = OnlineWindow(1500) #600
 factor = 1000
 
 def plot_data(df_classified: pd.DataFrame, threshold: float, normalization: str) -> None:
