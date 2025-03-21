@@ -23,8 +23,15 @@ data_dirs = [
     "/home/chris/experiment_data/14_2025_03_14-2025_03_21/classification"
 ]
 
+# normalization_dirs = [
+#     "/home/chris/online-classification-simulation/adjusted-min-max",
+#     "/home/chris/online-classification-simulation/min-max",
+#     "/home/chris/online-classification-simulation/min-max-sliding-window-60-min",
+#     "/home/chris/online-classification-simulation/z-score",
+#     "/home/chris/online-classification-simulation/z-score-sliding-window-60-min"
+# ]
+
 normalization_dirs = [
-    "/home/chris/online-classification-simulation/adjusted-min-max",
     "/home/chris/online-classification-simulation/min-max",
     "/home/chris/online-classification-simulation/min-max-sliding-window-60-min",
     "/home/chris/online-classification-simulation/z-score",
@@ -36,8 +43,8 @@ prefixes = ["C1", "C2"]
 result_dir = "/home/chris/experiment_data/Test"
 os.makedirs(result_dir, exist_ok=True)
 
-for prefix in prefixes:
-    for normalization_dir in [normalization_dirs[0]]:
+for prefix in [prefixes[0]]:
+    for normalization_dir in normalization_dirs:
         # Extract the normalization name from the directory (e.g., "adjusted-min-max")
         normalization = normalization_dir.rstrip('/').split("/")[-1]
 
