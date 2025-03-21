@@ -105,4 +105,5 @@ for prefix in prefixes:
                     tp14, fp14, tn14, fn14
                 ]
                 writer.writerow(row)
+                logging.info(f"Wrote row: {threshold}")
         logging.info(f"Finished processing file: {filename}")
