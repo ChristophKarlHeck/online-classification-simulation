@@ -1,0 +1,2 @@
+trial,output_channels,kernel_size,hidden_units,lr,batch_size,weight_decay,test_accuracy,path
+52,8,5,64,4.776508681114144e-05,16,8.56425856902185e-05,0.7168391346931458,/home/chris/watchplant_classification_dl/pipline_test/lightning_logs/version_504/checkpoints/epoch=33-step=7242.ckpt
