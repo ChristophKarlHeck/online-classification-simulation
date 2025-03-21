@@ -37,7 +37,7 @@ result_dir = "/home/chris/experiment_data/Test"
 os.makedirs(result_dir, exist_ok=True)
 
 for prefix in prefixes:
-    for normalization_dir in normalization_dirs:
+    for normalization_dir in [normalization_dirs[0]]:
         # Extract the normalization name from the directory (e.g., "adjusted-min-max")
         normalization = normalization_dir.rstrip('/').split("/")[-1]
 
