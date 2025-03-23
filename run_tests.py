@@ -32,9 +32,6 @@ data_dirs = [
 # ]
 
 normalization_dirs = [
-    "/home/chris/online-classification-simulation/min-max",
-    "/home/chris/online-classification-simulation/min-max-sliding-window-60-min",
-    "/home/chris/online-classification-simulation/z-score",
     "/home/chris/online-classification-simulation/z-score-sliding-window-60-min"
 ]
 

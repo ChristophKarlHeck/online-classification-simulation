@@ -1,1 +1,2 @@
-accuracy 0.73
+trial,output_channels,kernel_size,hidden_units,lr,batch_size,weight_decay,test_accuracy,path
+235,24,3,16,0.0012704833025970876,32,0.0013044605441905137,0.7412790656089783,/home/chris/watchplant_classification_dl/pipline_test/lightning_logs/version_818/checkpoints/epoch=38-step=4056.ckpt
