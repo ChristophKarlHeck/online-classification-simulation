@@ -15,7 +15,7 @@ online_window_ch0 = OnlineWindow(600) #600
 online_window_ch1 = OnlineWindow(600) #600
 factor = 1000
 
-def plot_data(df_classified: pd.DataFrame, threshold: float, normalization: str) -> None:
+def plot_data(df_classified: pd.DataFrame, threshold: float, normalization: str, num_classes: int) -> None:
     
     plant_id=999
 
@@ -43,21 +43,48 @@ def plot_data(df_classified: pd.DataFrame, threshold: float, normalization: str)
         plt.setp(ax.get_xticklabels(), fontsize=10, rotation=0, ha='center')
 
     # Scatter plot for classification
-    axs[0].plot(df_classified['datetime'], df_classified["ch0_smoothed"], label="CH0", color="blue")
-    axs[0].plot(df_classified['datetime'], df_classified["ch1_smoothed"], label="CH1", color="green")
+    if num_classes == 2:
+        axs[0].plot(df_classified['datetime'], df_classified["ch0_smoothed"], label="CH0", color="blue")
+        axs[0].plot(df_classified['datetime'], df_classified["ch1_smoothed"], label="CH1", color="orange")
 
-    axs[0].axhline(y=threshold, color="red", linestyle="--", linewidth=1, label=f"Threshold: {threshold}")
+        axs[0].axhline(y=threshold, color="red", linestyle="--", linewidth=1, label=f"Threshold: {threshold}")
 
-    axs[0].fill_between(df_classified['datetime'], 0, 1.0, 
-                    where=(df_classified["ch0_smoothed"] > threshold) & (df_classified["ch1_smoothed"] > threshold), 
-                    color='gray', alpha=0.3, label="Stimulus prediction")
+        axs[0].fill_between(df_classified['datetime'], 0, 1.0, 
+                        where=(df_classified["ch0_smoothed"] > threshold) & (df_classified["ch1_smoothed"] > threshold), 
+                        color='gray', alpha=0.3, label="Stimulus prediction")
 
 
-    axs[0].fill_between(
-        df_classified['datetime'], 0, 1.0, 
-        where=(df_classified["heat_ground_truth"] == 1), 
-        color='limegreen', alpha=0.3, label="Stimulus application"
-    )
+        axs[0].fill_between(
+            df_classified['datetime'], 0, 1.0, 
+            where=(df_classified["heat_ground_truth"] == 1), 
+            color='limegreen', alpha=0.3, label="Stimulus application"
+        )
+
+    if num_classes == 3:
+
+        # CH0: blues
+        axs[0].plot(df_classified['datetime'], df_classified["ch0_smoothed_idle"], label="Idle CH0", color="#add8e6")   # lightblue
+        axs[0].plot(df_classified['datetime'], df_classified["ch0_smoothed_heat"], label="Heat CH0", color="#1f77b4")  # matplotlib default blue
+        axs[0].plot(df_classified['datetime'], df_classified["ch0_smoothed_ozone"], label="Ozone CH0", color="#00008b") # darkblue
+
+        # CH1: oranges
+        axs[0].plot(df_classified['datetime'], df_classified["ch1_smoothed_idle"], label="Idle CH1", color="#ffdab9")   # peachpuff (light orange)
+        axs[0].plot(df_classified['datetime'], df_classified["ch1_smoothed_heat"], label="Heat CH1", color="#ff7f0e")   # matplotlib default orange
+        axs[0].plot(df_classified['datetime'], df_classified["ch1_smoothed_ozone"], label="Ozone CH1", color="#b35900") # dark orange/brown
+
+
+        axs[0].axhline(y=threshold, color="red", linestyle="--", linewidth=1, label=f"Threshold: {threshold}")
+
+        axs[0].fill_between(df_classified['datetime'], 0, 1.0, 
+                        where=(df_classified["ch0_smoothed_heat"] > threshold) & (df_classified["ch1_smoothed_heat"] > threshold), 
+                        color='gray', alpha=0.3, label="Stimulus prediction")
+
+
+        axs[0].fill_between(
+            df_classified['datetime'], 0, 1.0, 
+            where=(df_classified["heat_ground_truth"] == 1), 
+            color='limegreen', alpha=0.3, label="Stimulus application"
+        )
 
 
     # Ensure y-axis limits and set explicit tick marks
@@ -89,38 +116,78 @@ def plot_data(df_classified: pd.DataFrame, threshold: float, normalization: str)
     #plt.savefig(plot_path, dpi=300)
     plt.show()
 
-def smooth_classification(df_classified: pd.DataFrame, window_size: int) -> pd.DataFrame:
+def smooth_classification(df_classified: pd.DataFrame, window_size: int, num_classes: int) -> pd.DataFrame:
 
-    df_classified["ch0_smoothed"] = df_classified["classification_ch0"].rolling(window=window_size, min_periods=1).mean()
-    df_classified["ch1_smoothed"] = df_classified["classification_ch1"].rolling(window=window_size, min_periods=1).mean()
+    if num_classes == 2:
+        df_classified["ch0_smoothed"] = df_classified["classification_ch0"].rolling(window=window_size, min_periods=1).mean()
+        df_classified["ch1_smoothed"] = df_classified["classification_ch1"].rolling(window=window_size, min_periods=1).mean()
+    if num_classes == 3:
+        df_classified["ch0_smoothed_idle"] = df_classified["classification_ch0_idle"].rolling(window=window_size, min_periods=1).mean()
+        df_classified["ch0_smoothed_heat"] = df_classified["classification_ch0_heat"].rolling(window=window_size, min_periods=1).mean()
+        df_classified["ch0_smoothed_ozone"] = df_classified["classification_ch0_ozone"].rolling(window=window_size, min_periods=1).mean()
+        df_classified["ch1_smoothed_idle"] = df_classified["classification_ch1_idle"].rolling(window=window_size, min_periods=1).mean()
+        df_classified["ch1_smoothed_heat"] = df_classified["classification_ch1_heat"].rolling(window=window_size, min_periods=1).mean()
+        df_classified["ch1_smoothed_ozone"] = df_classified["classification_ch1_ozone"].rolling(window=window_size, min_periods=1).mean()
+
 
     return df_classified
 
-def metrics(df_classified: pd.DataFrame, threshold: float):
+def metrics(df_classified: pd.DataFrame, threshold: float, num_classes: int):
 
-    true_positive_cases =  (
-         ((df_classified["heat_ground_truth"] == 1) & 
-          (df_classified["ch0_smoothed"] > threshold) & 
-          (df_classified["ch1_smoothed"] > threshold))
-    )
+    true_positive_cases = 0
+    false_positive_cases = 0
+    true_negative_cases = 0
+    false_negative_cases = 0
 
-    false_positive_cases =  (
-         ((df_classified["heat_ground_truth"] == 0) & 
-          (df_classified["ch0_smoothed"] > threshold) & 
-          (df_classified["ch1_smoothed"] > threshold))
-    )
+    if num_classes == 2:
+        true_positive_cases =  (
+            ((df_classified["heat_ground_truth"] == 1) & 
+            (df_classified["ch0_smoothed"] > threshold) & 
+            (df_classified["ch1_smoothed"] > threshold))
+        )
 
-    true_negative_cases =  (
-         ((df_classified["heat_ground_truth"] == 0) & 
-          ((df_classified["ch0_smoothed"] <= threshold) |
-          (df_classified["ch1_smoothed"] <= threshold)))
-    )
+        false_positive_cases =  (
+            ((df_classified["heat_ground_truth"] == 0) & 
+            (df_classified["ch0_smoothed"] > threshold) & 
+            (df_classified["ch1_smoothed"] > threshold))
+        )
 
-    false_negative_cases =  (
-         ((df_classified["heat_ground_truth"] == 1) & 
-          ((df_classified["ch0_smoothed"] <= threshold) | 
-          (df_classified["ch1_smoothed"] <= threshold)))
-    )
+        true_negative_cases =  (
+            ((df_classified["heat_ground_truth"] == 0) & 
+            ((df_classified["ch0_smoothed"] <= threshold) |
+            (df_classified["ch1_smoothed"] <= threshold)))
+        )
+
+        false_negative_cases =  (
+            ((df_classified["heat_ground_truth"] == 1) & 
+            ((df_classified["ch0_smoothed"] <= threshold) | 
+            (df_classified["ch1_smoothed"] <= threshold)))
+        )
+
+    if num_classes == 3:
+        true_positive_cases =  (
+            ((df_classified["heat_ground_truth"] == 1) & 
+            (df_classified["ch0_smoothed_heat"] > threshold) & 
+            (df_classified["ch1_smoothed_heat"] > threshold))
+        )
+
+        false_positive_cases =  (
+            ((df_classified["heat_ground_truth"] == 0) & 
+            (df_classified["ch0_smoothed_heat"] > threshold) & 
+            (df_classified["ch1_smoothed_heat"] > threshold))
+        )
+
+        true_negative_cases =  (
+            ((df_classified["heat_ground_truth"] == 0) & 
+            ((df_classified["ch0_smoothed_heat"] <= threshold) |
+            (df_classified["ch1_smoothed_heat"] <= threshold)))
+        )
+
+        false_negative_cases =  (
+            ((df_classified["heat_ground_truth"] == 1) & 
+            ((df_classified["ch0_smoothed_heat"] <= threshold) | 
+            (df_classified["ch1_smoothed_heat"] <= threshold)))
+        )
     
     true_positive = true_positive_cases.sum()
     false_positive = false_positive_cases.sum()
@@ -240,15 +307,26 @@ def apply_normalization(arr: np.ndarray, normalization: str, channel: bool) -> n
         raise ValueError(f"Unsupported normalization method: {normalization}")
 
 
-def online_experiment(classifier, df_input_not_normalized: pd.DataFrame, normalization: str) -> pd.DataFrame:
+def online_experiment(classifier, df_input_not_normalized: pd.DataFrame, normalization: str, num_classes: int) -> pd.DataFrame:
 
     print("Running Online Experiment")
 
     df = df_input_not_normalized.copy()
-    df["classification_ch0"] = None
-    df["classification_ch1"] = None
     df["input_normalized_ch0"] = None
     df["input_normalized_ch1"] = None
+
+    if num_classes == 2:
+        df["classification_ch0"] = None
+        df["classification_ch1"] = None
+
+    if num_classes == 3:
+        df["classification_ch0_idle"] = None
+        df["classification_ch0_heat"] = None
+        df["classification_ch0_ozone"] = None
+        df["classification_ch1_idle"] = None
+        df["classification_ch1_heat"] = None
+        df["classification_ch1_ozone"] = None
+
 
     for index, row in df.iterrows():
 
@@ -257,10 +335,16 @@ def online_experiment(classifier, df_input_not_normalized: pd.DataFrame, normali
             input_tensor_ch0 = torch.tensor(normalized_ch0, dtype=torch.float32).unsqueeze(0).unsqueeze(0)
             with torch.no_grad():
                 prediction_ch0 = classifier(input_tensor_ch0)
-            # Extract the second value from the prediction list ([prob_class0, prob_class1])
-            df.at[index, "classification_ch0"] = prediction_ch0.flatten().tolist()[1]
-            # Use .at[] to store the list as a single object in the cell
+
             df.at[index, "input_normalized_ch0"] = normalized_ch0.tolist()
+            if num_classes == 2:
+                # Extract the second value from the prediction list ([prob_class0, prob_class1])
+                df.at[index, "classification_ch0"] = prediction_ch0.flatten().tolist()[1]
+                # Use .at[] to store the list as a single object in the cell
+            if num_classes == 3:
+                df.at[index,"classification_ch0_idle"] = prediction_ch0.flatten().tolist()[0]
+                df.at[index,"classification_ch0_heat"] = prediction_ch0.flatten().tolist()[1]
+                df.at[index,"classification_ch0_ozone"] = prediction_ch0.flatten().tolist()[2]
 
         if isinstance(row["input_not_normalized_ch1"], (list, np.ndarray)):
             normalized_ch1 = apply_normalization(np.array(row["input_not_normalized_ch1"]), normalization, True)
@@ -268,8 +352,14 @@ def online_experiment(classifier, df_input_not_normalized: pd.DataFrame, normali
             with torch.no_grad():
                 prediction_ch1 = classifier(input_tensor_ch1)
 
-            df.at[index, "classification_ch1"] = prediction_ch1.flatten().tolist()[1]
             df.at[index, "input_normalized_ch1"] = normalized_ch1.tolist()
+            if num_classes == 2:
+                df.at[index, "classification_ch1"] = prediction_ch1.flatten().tolist()[1]
+            if num_classes == 3:
+                df.at[index,"classification_ch1_idle"] = prediction_ch1.flatten().tolist()[0]
+                df.at[index,"classification_ch1_heat"] = prediction_ch1.flatten().tolist()[1]
+                df.at[index,"classification_ch1_ozone"] = prediction_ch1.flatten().tolist()[2]
+
 
     return df
 
@@ -302,10 +392,10 @@ def main(data_dir=None, classifier_dir=None, normalization=None, prefix=None, th
     df_input_not_normalized = load_data(data_dir, prefix)
     df_result = online_experiment(classifier, df_input_not_normalized, normalization)
 
-    df_result = smooth_classification(df_result, 100)
+    df_result = smooth_classification(df_result, 100, num_classes)
 
-    true_positive, false_positive, true_negative, false_negative = metrics(df_result, threshold)
-    #plot_data(df_result, threshold, normalization)
+    true_positive, false_positive, true_negative, false_negative = metrics(df_result, threshold, num_classes)
+    plot_data(df_result, threshold, normalization, num_classes)
 
     return true_positive, false_positive, true_negative, false_negative
 
