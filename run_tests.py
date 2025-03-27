@@ -32,7 +32,7 @@ data_dirs = [
 # ]
 
 normalization_dirs = [
-    "/home/chris/online-classification-simulation/z-score-sliding-window-60-min"
+    "/home/chris/online-classification-simulation/z-score"
 ]
 
 prefixes = ["C1", "C2"]
