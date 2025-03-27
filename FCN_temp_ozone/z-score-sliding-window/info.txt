@@ -1,0 +1,2 @@
+temp 60 min
+ozone 40 min
