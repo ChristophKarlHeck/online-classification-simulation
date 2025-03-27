@@ -274,7 +274,7 @@ def online_experiment(classifier, df_input_not_normalized: pd.DataFrame, normali
     return df
 
 
-def main(data_dir=None, classifier_dir=None, normalization=None, prefix=None, threshold=None):
+def main(data_dir=None, classifier_dir=None, normalization=None, prefix=None, threshold=None, num_classes=None):
     if data_dir is None or classifier_dir is None or normalization is None or prefix is None:
         parser = argparse.ArgumentParser(description="Test forcasting methods")
         parser.add_argument("--data_dir", required=True, type=str, help="Directory with raw files.")
@@ -282,6 +282,7 @@ def main(data_dir=None, classifier_dir=None, normalization=None, prefix=None, th
         parser.add_argument("--normalization", required=True, type=str, help="Normalization method.")
         parser.add_argument("--prefix", required=True, type=str, help="C1, basically choose the plant.")
         parser.add_argument("--threshold", required=False, type=float, default=0.8, help="Threshold for optimization")
+        parser.add_argument("--num_classes", type=int, choices=[2, 3], default=2)
         args = parser.parse_args()
         # Use parsed args for any parameters not passed to main()
         if data_dir is None: 
@@ -294,6 +295,8 @@ def main(data_dir=None, classifier_dir=None, normalization=None, prefix=None, th
             prefix = args.prefix.upper()
         if threshold is None: 
             threshold = args.threshold
+        if num_classes is None: 
+            num_classes = args.num_classes
 
     classifier = load_classifier(classifier_dir)
     df_input_not_normalized = load_data(data_dir, prefix)
