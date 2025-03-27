@@ -55,7 +55,7 @@ def plot_data(df_classified: pd.DataFrame, threshold: float, normalization: str)
 
     axs[0].fill_between(
         df_classified['datetime'], 0, 1.0, 
-        where=(df_classified["ground_truth"] == 1), 
+        where=(df_classified["heat_ground_truth"] == 1), 
         color='limegreen', alpha=0.3, label="Stimulus application"
     )
 
@@ -99,25 +99,25 @@ def smooth_classification(df_classified: pd.DataFrame, window_size: int) -> pd.D
 def metrics(df_classified: pd.DataFrame, threshold: float):
 
     true_positive_cases =  (
-         ((df_classified["ground_truth"] == 1) & 
+         ((df_classified["heat_ground_truth"] == 1) & 
           (df_classified["ch0_smoothed"] > threshold) & 
           (df_classified["ch1_smoothed"] > threshold))
     )
 
     false_positive_cases =  (
-         ((df_classified["ground_truth"] == 0) & 
+         ((df_classified["heat_ground_truth"] == 0) & 
           (df_classified["ch0_smoothed"] > threshold) & 
           (df_classified["ch1_smoothed"] > threshold))
     )
 
     true_negative_cases =  (
-         ((df_classified["ground_truth"] == 0) & 
+         ((df_classified["heat_ground_truth"] == 0) & 
           ((df_classified["ch0_smoothed"] <= threshold) |
           (df_classified["ch1_smoothed"] <= threshold)))
     )
 
     false_negative_cases =  (
-         ((df_classified["ground_truth"] == 1) & 
+         ((df_classified["heat_ground_truth"] == 1) & 
           ((df_classified["ch0_smoothed"] <= threshold) | 
           (df_classified["ch1_smoothed"] <= threshold)))
     )
@@ -169,10 +169,12 @@ def load_data(data_dir: str, prefix: str) -> pd.DataFrame:
 
     df.rename(columns={
         "input_not_normalized_ch0_arr": "input_not_normalized_ch0",
-        "input_not_normalized_ch1_arr": "input_not_normalized_ch1"
+        "input_not_normalized_ch1_arr": "input_not_normalized_ch1",
+        "ground_truth": "heat_ground_truth"
     }, inplace=True)
 
-    #print(df.head())
+    print(df.head())
+    "Columns: datetime, heat_ground_truth, input_not_normalized_ch0, input_not_normalized_ch1"
     return df
 
 
