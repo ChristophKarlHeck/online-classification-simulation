@@ -63,12 +63,12 @@ def plot_data(df_classified: pd.DataFrame, threshold: float, normalization: str,
     if num_classes == 3:
 
         # CH0: blues
-        axs[0].plot(df_classified['datetime'], df_classified["ch0_smoothed_idle"], label="Idle CH0", color="#add8e6")   # lightblue
+        #axs[0].plot(df_classified['datetime'], df_classified["ch0_smoothed_idle"], label="Idle CH0", color="#add8e6")   # lightblue
         axs[0].plot(df_classified['datetime'], df_classified["ch0_smoothed_heat"], label="Heat CH0", color="#1f77b4")  # matplotlib default blue
         axs[0].plot(df_classified['datetime'], df_classified["ch0_smoothed_ozone"], label="Ozone CH0", color="#00008b") # darkblue
 
         # CH1: oranges
-        axs[0].plot(df_classified['datetime'], df_classified["ch1_smoothed_idle"], label="Idle CH1", color="#ffdab9")   # peachpuff (light orange)
+        #axs[0].plot(df_classified['datetime'], df_classified["ch1_smoothed_idle"], label="Idle CH1", color="#ffdab9")   # peachpuff (light orange)
         axs[0].plot(df_classified['datetime'], df_classified["ch1_smoothed_heat"], label="Heat CH1", color="#ff7f0e")   # matplotlib default orange
         axs[0].plot(df_classified['datetime'], df_classified["ch1_smoothed_ozone"], label="Ozone CH1", color="#b35900") # dark orange/brown
 
@@ -390,7 +390,7 @@ def main(data_dir=None, classifier_dir=None, normalization=None, prefix=None, th
 
     classifier = load_classifier(classifier_dir)
     df_input_not_normalized = load_data(data_dir, prefix)
-    df_result = online_experiment(classifier, df_input_not_normalized, normalization)
+    df_result = online_experiment(classifier, df_input_not_normalized, normalization, num_classes)
 
     df_result = smooth_classification(df_result, 100, num_classes)
 
