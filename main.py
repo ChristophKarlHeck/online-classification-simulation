@@ -61,29 +61,31 @@ def plot_data(df_classified: pd.DataFrame, threshold: float, normalization: str,
         )
 
     if num_classes == 3:
+        df_classified["smoothed_heat_mean"] = (df_classified["ch0_smoothed_heat"] + df_classified["ch1_smoothed_heat"])/2
+        df_classified["smoothed_ozone_mean"] = (df_classified["ch0_smoothed_ozone"] + df_classified["ch1_smoothed_ozone"])/2
 
         # CH0: blues
         #axs[0].plot(df_classified['datetime'], df_classified["ch0_smoothed_idle"], label="Idle CH0", color="#add8e6")   # lightblue
-        axs[0].plot(df_classified['datetime'], df_classified["ch0_smoothed_heat"], label="Heat CH0", color="#1f77b4")  # matplotlib default blue
-        axs[0].plot(df_classified['datetime'], df_classified["ch0_smoothed_ozone"], label="Ozone CH0", color="#00008b") # darkblue
+        axs[0].plot(df_classified['datetime'], df_classified["smoothed_heat_mean"], label="Heat CH0", color="#FF0000")  # matplotlib default blue
+        axs[0].plot(df_classified['datetime'], df_classified["smoothed_ozone_mean"], label="Ozone CH0", color="#007BFF") # darkblue
 
         # CH1: oranges
         #axs[0].plot(df_classified['datetime'], df_classified["ch1_smoothed_idle"], label="Idle CH1", color="#ffdab9")   # peachpuff (light orange)
-        axs[0].plot(df_classified['datetime'], df_classified["ch1_smoothed_heat"], label="Heat CH1", color="#ff7f0e")   # matplotlib default orange
-        axs[0].plot(df_classified['datetime'], df_classified["ch1_smoothed_ozone"], label="Ozone CH1", color="#b35900") # dark orange/brown
+        # axs[0].plot(df_classified['datetime'], df_classified["ch1_smoothed_heat_mean"], label="Heat CH1", color="#8B0000")   # matplotlib default orange
+        # axs[0].plot(df_classified['datetime'], df_classified["ch1_smoothed_ozone"], label="Ozone CH1", color="#00008B") # dark orange/brown
 
 
         axs[0].axhline(y=threshold, color="red", linestyle="--", linewidth=1, label=f"Threshold: {threshold}")
 
         axs[0].fill_between(df_classified['datetime'], 0, 1.0, 
-                        where=(df_classified["ch0_smoothed_heat"] > threshold) & (df_classified["ch1_smoothed_heat"] > threshold), 
-                        color='gray', alpha=0.3, label="Stimulus prediction")
+                        where=(df_classified["smoothed_heat_mean"] > threshold),# & (df_classified["ch1_smoothed_heat"] > threshold), 
+                        color='#722F37', alpha=0.3, label="Stimulus prediction")
 
 
         axs[0].fill_between(
             df_classified['datetime'], 0, 1.0, 
             where=(df_classified["heat_ground_truth"] == 1), 
-            color='limegreen', alpha=0.3, label="Stimulus application"
+            color='#DC143C', alpha=0.3, label="Stimulus application"
         )
 
 
@@ -98,8 +100,8 @@ def plot_data(df_classified: pd.DataFrame, threshold: float, normalization: str,
 
 
     # Line plot for interpolated electric potential
-    axs[1].plot(df_classified['datetime'], df_classified['LastVoltageCh0'], label="CH0", color="blue")
-    axs[1].plot(df_classified['datetime'], df_classified['LastVoltageCh1'], label="CH1", color="green", linestyle="dashed")
+    axs[1].plot(df_classified['datetime'], df_classified['LastVoltageCh0'], label="CH0", color="#90EE90")
+    axs[1].plot(df_classified['datetime'], df_classified['LastVoltageCh1'], label="CH1", color="#013220")
 
     # Labels and Titles
     axs[1].tick_params(axis='y', labelsize=10)
