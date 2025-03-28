@@ -63,11 +63,13 @@ def plot_data(df_classified: pd.DataFrame, threshold: float, normalization: str,
     if num_classes == 3:
         df_classified["smoothed_heat_mean"] = (df_classified["ch0_smoothed_heat"] + df_classified["ch1_smoothed_heat"])/2
         df_classified["smoothed_ozone_mean"] = (df_classified["ch0_smoothed_ozone"] + df_classified["ch1_smoothed_ozone"])/2
+        df_classified["smoothed_idle_mean"] = (df_classified["ch0_smoothed_idle"] + df_classified["ch1_smoothed_idle"])/2
 
         # CH0: blues
         #axs[0].plot(df_classified['datetime'], df_classified["ch0_smoothed_idle"], label="Idle CH0", color="#add8e6")   # lightblue
         axs[0].plot(df_classified['datetime'], df_classified["smoothed_heat_mean"], label="Heat CH0", color="#FF0000")  # matplotlib default blue
         axs[0].plot(df_classified['datetime'], df_classified["smoothed_ozone_mean"], label="Ozone CH0", color="#007BFF") # darkblue
+        axs[0].plot(df_classified['datetime'], df_classified["smoothed_idle_mean"], label="Ozone CH0", color="#012169")
 
         # CH1: oranges
         #axs[0].plot(df_classified['datetime'], df_classified["ch1_smoothed_idle"], label="Idle CH1", color="#ffdab9")   # peachpuff (light orange)
