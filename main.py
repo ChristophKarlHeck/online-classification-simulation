@@ -220,7 +220,7 @@ def load_classifier(path_to_trained_model: str):
     return model
 
 
-def load_data(data_dir: str, prefix: str) -> pd.DataFrame:
+def load_temp_data(data_dir: str, prefix: str) -> pd.DataFrame:
     """Loads raw data"""
     file_name = f"input_not_normalized_{prefix}.csv"
     file_path = os.path.join(data_dir, file_name)
@@ -242,6 +242,34 @@ def load_data(data_dir: str, prefix: str) -> pd.DataFrame:
         "input_not_normalized_ch0_arr": "input_not_normalized_ch0",
         "input_not_normalized_ch1_arr": "input_not_normalized_ch1",
         "ground_truth": "heat_ground_truth"
+    }, inplace=True)
+
+    print(df.head())
+    "Columns: datetime, heat_ground_truth, input_not_normalized_ch0, input_not_normalized_ch1"
+    return df
+
+def load_ozone_data(data_dir: str) -> pd.DataFrame:
+    """Loads raw data"""
+    file_name = f"simulation_data.csv"
+    file_path = os.path.join(data_dir, file_name)
+
+    # Check if the file exists before loading
+    if not os.path.exists(file_path):
+        raise FileNotFoundError(f"File not found: {file_path}")
+
+    # Load the CSV file into a DataFrame
+    df = pd.read_csv(file_path)
+
+    # Convert stringified lists back into NumPy arrays
+    df["input_not_normalized_ch0_arr"] = df["signal_ch0"].apply(lambda x: np.array(ast.literal_eval(x), dtype=np.float32))
+    df["input_not_normalized_ch1_arr"] = df["signal_ch1"].apply(lambda x: np.array(ast.literal_eval(x), dtype=np.float32))
+
+    df.drop(columns=["input_not_normalized_ch0", "input_not_normalized_ch1"], inplace=True)
+
+    df.rename(columns={
+        "input_not_normalized_ch0_arr": "input_not_normalized_ch0",
+        "input_not_normalized_ch1_arr": "input_not_normalized_ch1",
+        "ground_truth": "ozone_ground_truth"
     }, inplace=True)
 
     print(df.head())
@@ -368,7 +396,7 @@ def online_experiment(classifier, df_input_not_normalized: pd.DataFrame, normali
     return df
 
 
-def main(data_dir=None, classifier_dir=None, normalization=None, prefix=None, threshold=None, num_classes=None):
+def main(data_dir=None, classifier_dir=None, normalization=None, prefix=None, threshold=None, num_classes=None, objective=None):
     if data_dir is None or classifier_dir is None or normalization is None or prefix is None:
         parser = argparse.ArgumentParser(description="Test forcasting methods")
         parser.add_argument("--data_dir", required=True, type=str, help="Directory with raw files.")
@@ -377,6 +405,7 @@ def main(data_dir=None, classifier_dir=None, normalization=None, prefix=None, th
         parser.add_argument("--prefix", required=True, type=str, help="C1, basically choose the plant.")
         parser.add_argument("--threshold", required=False, type=float, default=0.8, help="Threshold for optimization")
         parser.add_argument("--num_classes", type=int, choices=[2, 3], default=2)
+        parser.add_argument("--objective", type=int, choices=["temp", "ozone"], default=2)
         args = parser.parse_args()
         # Use parsed args for any parameters not passed to main()
         if data_dir is None: 
@@ -391,10 +420,18 @@ def main(data_dir=None, classifier_dir=None, normalization=None, prefix=None, th
             threshold = args.threshold
         if num_classes is None: 
             num_classes = args.num_classes
+        if objective is None: 
+            objective = args.objective
 
     classifier = load_classifier(classifier_dir)
-    df_input_not_normalized = load_data(data_dir, prefix)
-    df_result = online_experiment(classifier, df_input_not_normalized, normalization, num_classes)
+    df_result = None
+    if objective == "temp":
+        df_input_not_normalized_temp = load_temp_data(data_dir, prefix)
+        df_result = online_experiment(classifier, df_input_not_normalized_temp, normalization, num_classes)
+    
+    if objective == "ozone":
+        df_input_not_normalized_ozone = load_ozone_data(data_dir, prefix)
+        df_result = online_experiment(classifier, df_input_not_normalized_ozone, normalization, num_classes)
 
     df_result = smooth_classification(df_result, 100, num_classes)
 
