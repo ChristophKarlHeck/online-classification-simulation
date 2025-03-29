@@ -18,19 +18,23 @@ factor = 1000
 def plot_data(df_classified: pd.DataFrame, threshold: float, normalization: str, num_classes: int, objective: str) -> None:
     
     plant_id=999
-
     #------------------Prepare Data for Plot---------------------------------------#
     window_size = 100 # 100 = 10min
-    df_classified['datetime'] = pd.to_datetime(df_classified['datetime'], format='%Y-%m-%d %H:%M:%S:%f', errors='coerce')
-    df_classified['datetime'] = df_classified['datetime'] + pd.Timedelta(hours=1)
+    if objective == "temp":
+        pd.options.display.max_columns = None
+        df_classified['datetime'] = pd.to_datetime(df_classified['datetime'], format='%Y-%m-%d %H:%M:%S', errors='coerce')
+        df_classified['datetime'] = df_classified['datetime'] + pd.Timedelta(hours=1)
+    if objective == "ozone":
+        pd.options.display.max_columns = None
+        df_classified['datetime'] = pd.to_datetime(df_classified['datetime'], format='%Y-%m-%d %H:%M:%S.%f', errors='coerce')
     df_classified['LastVoltageCh0'] = df_classified['input_normalized_ch0'].apply(lambda x: x[-1])
     df_classified['LastVoltageCh1'] = df_classified['input_normalized_ch1'].apply(lambda x: x[-1])
     df_classified["LastVoltageCh0"] = df_classified["LastVoltageCh0"].rolling(window=window_size, min_periods=1).mean()
     df_classified["LastVoltageCh1"] = df_classified["LastVoltageCh1"].rolling(window=window_size, min_periods=1).mean()
-
     fig_width = 5.90666  # Width in inches
     aspect_ratio = 0.618  # Example aspect ratio (height/width)
     fig_height = fig_width * aspect_ratio
+
 
     fig, axs = plt.subplots(2, 1, figsize=(fig_width, 8), sharex=True)
 
@@ -86,28 +90,35 @@ def plot_data(df_classified: pd.DataFrame, threshold: float, normalization: str,
 
         axs[0].axhline(y=threshold, color="red", linestyle="--", linewidth=1, label=f"Threshold: {threshold}")
 
-        axs[0].fill_between(df_classified['datetime'], 0, 1.0, 
-                        where=(df_classified["smoothed_heat_mean"] > threshold),# & (df_classified["ch1_smoothed_heat"] > threshold), 
-                        color='#722F37', alpha=0.3, label="Stimulus prediction")
 
         if objective == "temp":
+
+            axs[0].fill_between(df_classified['datetime'], 0, 1.0, 
+                            where=(df_classified["smoothed_heat_mean"] > threshold),# & (df_classified["ch1_smoothed_heat"] > threshold), 
+                            color='#722F37', alpha=0.3, label="Stimulus prediction")
+
             axs[0].fill_between(
                 df_classified['datetime'], 0, 1.0, 
                 where=(df_classified["heat_ground_truth"] == 1), 
                 color='#DC143C', alpha=0.3, label="Stimulus application"
             )
         if objective == "ozone":
+
+            axs[0].fill_between(df_classified['datetime'], 0, 1.0, 
+                            where=(df_classified["smoothed_ozone_mean"] > threshold),# & (df_classified["ch1_smoothed_heat"] > threshold), 
+                            color='#000080', alpha=0.3, label="Stimulus prediction")
+            
             axs[0].fill_between(
                 df_classified['datetime'], 0, 1.0, 
                 where=(df_classified["ozone_ground_truth"] == 1), 
-                color='#DC143C', alpha=0.3, label="Stimulus application"
+                color='#4169E1', alpha=0.3, label="Stimulus application"
             )
 
 
     # Ensure y-axis limits and set explicit tick marks
     axs[0].set_ylim(0, 1.05)
     axs[0].set_yticks([0, 0.25, 0.5, 0.75, 1])  # Explicitly set y-ticks
-    axs[0].set_ylabel("Heat Phase Probability",fontsize=10)
+    axs[0].set_ylabel("Phase Probability",fontsize=10)
     axs[0].tick_params(axis='y', labelsize=10) 
 
     axs[0].set_title(f"Online Heat Phase Classification Using Ivy Data (ID {plant_id})", fontsize=10, pad=40)
@@ -299,6 +310,8 @@ def load_temp_data(data_dir: str, prefix: str) -> pd.DataFrame:
 
     # Load the CSV file into a DataFrame
     df = pd.read_csv(file_path)
+    pd.options.display.max_columns = None
+    print("Temp:", df.head())
 
     # Convert stringified lists back into NumPy arrays
     df["input_not_normalized_ch0_arr"] = df["input_not_normalized_ch0"].apply(lambda x: np.array(ast.literal_eval(x), dtype=np.float32))
@@ -326,7 +339,9 @@ def load_ozone_data(data_dir: str) -> pd.DataFrame:
         raise FileNotFoundError(f"File not found: {file_path}")
 
     # Load the CSV file into a DataFrame
-    df = pd.read_csv(file_path)
+    df = pd.read_csv(file_path, index_col=0)
+    pd.options.display.max_columns = None
+    print("Ozone:", df.head())
 
     # Convert stringified lists back into NumPy arrays
     df["input_not_normalized_ch0_arr"] = df["input_not_normalized_ch0"].apply(lambda x: np.array(ast.literal_eval(x), dtype=np.float32))
