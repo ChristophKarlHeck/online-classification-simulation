@@ -15,7 +15,7 @@ online_window_ch0 = OnlineWindow(600) #600
 online_window_ch1 = OnlineWindow(600) #600
 factor = 1000
 
-def plot_data(df_classified: pd.DataFrame, threshold: float, normalization: str, num_classes: int) -> None:
+def plot_data(df_classified: pd.DataFrame, threshold: float, normalization: str, num_classes: int, objective: str) -> None:
     
     plant_id=999
 
@@ -54,11 +54,18 @@ def plot_data(df_classified: pd.DataFrame, threshold: float, normalization: str,
                         color='gray', alpha=0.3, label="Stimulus prediction")
 
 
-        axs[0].fill_between(
-            df_classified['datetime'], 0, 1.0, 
-            where=(df_classified["heat_ground_truth"] == 1), 
-            color='limegreen', alpha=0.3, label="Stimulus application"
-        )
+        if objective == "temp":
+            axs[0].fill_between(
+                df_classified['datetime'], 0, 1.0, 
+                where=(df_classified["heat_ground_truth"] == 1), 
+                color='limegreen', alpha=0.3, label="Stimulus application"
+            )
+        if objective == "ozone":
+            axs[0].fill_between(
+                df_classified['datetime'], 0, 1.0, 
+                where=(df_classified["ozone_ground_truth"] == 1), 
+                color='limegreen', alpha=0.3, label="Stimulus application"
+            )
 
     if num_classes == 3:
         df_classified["smoothed_heat_mean"] = (df_classified["ch0_smoothed_heat"] + df_classified["ch1_smoothed_heat"])/2
@@ -136,7 +143,7 @@ def smooth_classification(df_classified: pd.DataFrame, window_size: int, num_cla
 
     return df_classified
 
-def metrics(df_classified: pd.DataFrame, threshold: float, num_classes: int):
+def metrics(df_classified: pd.DataFrame, threshold: float, num_classes: int, objective: str):
 
     true_positive_cases = 0
     false_positive_cases = 0
@@ -144,54 +151,109 @@ def metrics(df_classified: pd.DataFrame, threshold: float, num_classes: int):
     false_negative_cases = 0
 
     if num_classes == 2:
-        true_positive_cases =  (
-            ((df_classified["heat_ground_truth"] == 1) & 
-            (df_classified["ch0_smoothed"] > threshold) & 
-            (df_classified["ch1_smoothed"] > threshold))
-        )
+        if objective == "temp":
+            true_positive_cases =  (
+                ((df_classified["heat_ground_truth"] == 1) & 
+                (df_classified["ch0_smoothed"] > threshold) & 
+                (df_classified["ch1_smoothed"] > threshold))
+            )
+        if objective == "ozone":
+            true_positive_cases =  (
+                ((df_classified["ozone_ground_truth"] == 1) & 
+                (df_classified["ch0_smoothed"] > threshold) & 
+                (df_classified["ch1_smoothed"] > threshold))
+            )
+        if objective == "temp":
+            false_positive_cases =  (
+                ((df_classified["heat_ground_truth"] == 0) & 
+                (df_classified["ch0_smoothed"] > threshold) & 
+                (df_classified["ch1_smoothed"] > threshold))
+            )
+        if objective == "ozone":
+            false_positive_cases =  (
+                ((df_classified["ozone_ground_truth"] == 0) & 
+                (df_classified["ch0_smoothed"] > threshold) & 
+                (df_classified["ch1_smoothed"] > threshold))
+            )
 
-        false_positive_cases =  (
-            ((df_classified["heat_ground_truth"] == 0) & 
-            (df_classified["ch0_smoothed"] > threshold) & 
-            (df_classified["ch1_smoothed"] > threshold))
-        )
-
-        true_negative_cases =  (
-            ((df_classified["heat_ground_truth"] == 0) & 
-            ((df_classified["ch0_smoothed"] <= threshold) |
-            (df_classified["ch1_smoothed"] <= threshold)))
-        )
-
-        false_negative_cases =  (
-            ((df_classified["heat_ground_truth"] == 1) & 
-            ((df_classified["ch0_smoothed"] <= threshold) | 
-            (df_classified["ch1_smoothed"] <= threshold)))
-        )
+        if objective == "temp":
+            true_negative_cases =  (
+                ((df_classified["heat_ground_truth"] == 0) & 
+                ((df_classified["ch0_smoothed"] <= threshold) |
+                (df_classified["ch1_smoothed"] <= threshold)))
+            )
+        if objective == "ozone":
+            true_negative_cases =  (
+                ((df_classified["ozone_ground_truth"] == 0) & 
+                ((df_classified["ch0_smoothed"] <= threshold) |
+                (df_classified["ch1_smoothed"] <= threshold)))
+            )
+        if objective == "temp":
+            false_negative_cases =  (
+                ((df_classified["heat_ground_truth"] == 1) & 
+                ((df_classified["ch0_smoothed"] <= threshold) | 
+                (df_classified["ch1_smoothed"] <= threshold)))
+            )
+        if objective == "ozone":
+            false_negative_cases =  (
+                ((df_classified["ozone_ground_truth"] == 1) & 
+                ((df_classified["ch0_smoothed"] <= threshold) | 
+                (df_classified["ch1_smoothed"] <= threshold)))
+            )
 
     if num_classes == 3:
-        true_positive_cases =  (
-            ((df_classified["heat_ground_truth"] == 1) & 
-            (df_classified["ch0_smoothed_heat"] > threshold) & 
-            (df_classified["ch1_smoothed_heat"] > threshold))
-        )
+        if objective == "temp":
+            true_positive_cases =  (
+                ((df_classified["heat_ground_truth"] == 1) & 
+                (df_classified["ch0_smoothed_heat"] > threshold) & 
+                (df_classified["ch1_smoothed_heat"] > threshold))
+            )
+        if objective == "ozone":
+            true_positive_cases =  (
+                ((df_classified["ozone_ground_truth"] == 1) & 
+                (df_classified["ch0_smoothed_heat"] > threshold) & 
+                (df_classified["ch1_smoothed_heat"] > threshold))
+            )
 
-        false_positive_cases =  (
-            ((df_classified["heat_ground_truth"] == 0) & 
-            (df_classified["ch0_smoothed_heat"] > threshold) & 
-            (df_classified["ch1_smoothed_heat"] > threshold))
-        )
+        if objective == "temp":
+            false_positive_cases =  (
+                ((df_classified["heat_ground_truth"] == 0) & 
+                (df_classified["ch0_smoothed_heat"] > threshold) & 
+                (df_classified["ch1_smoothed_heat"] > threshold))
+            )
+        if objective == "ozone":
+            false_positive_cases =  (
+                ((df_classified["ozone_ground_truth"] == 0) & 
+                (df_classified["ch0_smoothed_heat"] > threshold) & 
+                (df_classified["ch1_smoothed_heat"] > threshold))
+            )
 
-        true_negative_cases =  (
-            ((df_classified["heat_ground_truth"] == 0) & 
-            ((df_classified["ch0_smoothed_heat"] <= threshold) |
-            (df_classified["ch1_smoothed_heat"] <= threshold)))
-        )
+        if objective == "temp":
+            true_negative_cases =  (
+                ((df_classified["heat_ground_truth"] == 0) & 
+                ((df_classified["ch0_smoothed_heat"] <= threshold) |
+                (df_classified["ch1_smoothed_heat"] <= threshold)))
+            )
 
-        false_negative_cases =  (
-            ((df_classified["heat_ground_truth"] == 1) & 
-            ((df_classified["ch0_smoothed_heat"] <= threshold) | 
-            (df_classified["ch1_smoothed_heat"] <= threshold)))
-        )
+        if objective == "ozone":
+            true_negative_cases =  (
+                ((df_classified["ozone_ground_truth"] == 0) & 
+                ((df_classified["ch0_smoothed_heat"] <= threshold) |
+                (df_classified["ch1_smoothed_heat"] <= threshold)))
+            )
+
+        if objective == "temp":
+            false_negative_cases =  (
+                ((df_classified["heat_ground_truth"] == 1) & 
+                ((df_classified["ch0_smoothed_heat"] <= threshold) | 
+                (df_classified["ch1_smoothed_heat"] <= threshold)))
+            )
+        if objective == "ozone":
+            false_negative_cases =  (
+                ((df_classified["ozone_ground_truth"] == 1) & 
+                ((df_classified["ch0_smoothed_heat"] <= threshold) | 
+                (df_classified["ch1_smoothed_heat"] <= threshold)))
+            )
     
     true_positive = true_positive_cases.sum()
     false_positive = false_positive_cases.sum()
@@ -261,8 +323,8 @@ def load_ozone_data(data_dir: str) -> pd.DataFrame:
     df = pd.read_csv(file_path)
 
     # Convert stringified lists back into NumPy arrays
-    df["input_not_normalized_ch0_arr"] = df["signal_ch0"].apply(lambda x: np.array(ast.literal_eval(x), dtype=np.float32))
-    df["input_not_normalized_ch1_arr"] = df["signal_ch1"].apply(lambda x: np.array(ast.literal_eval(x), dtype=np.float32))
+    df["input_not_normalized_ch0_arr"] = df["input_not_normalized_ch0"].apply(lambda x: np.array(ast.literal_eval(x), dtype=np.float32))
+    df["input_not_normalized_ch1_arr"] = df["input_not_normalized_ch1"].apply(lambda x: np.array(ast.literal_eval(x), dtype=np.float32))
 
     df.drop(columns=["input_not_normalized_ch0", "input_not_normalized_ch1"], inplace=True)
 
@@ -273,7 +335,7 @@ def load_ozone_data(data_dir: str) -> pd.DataFrame:
     }, inplace=True)
 
     print(df.head())
-    "Columns: datetime, heat_ground_truth, input_not_normalized_ch0, input_not_normalized_ch1"
+    "Columns: datetime, ozone_ground_truth, input_not_normalized_ch0, input_not_normalized_ch1"
     return df
 
 
@@ -430,13 +492,13 @@ def main(data_dir=None, classifier_dir=None, normalization=None, prefix=None, th
         df_result = online_experiment(classifier, df_input_not_normalized_temp, normalization, num_classes)
     
     if objective == "ozone":
-        df_input_not_normalized_ozone = load_ozone_data(data_dir, prefix)
+        df_input_not_normalized_ozone = load_ozone_data(data_dir)
         df_result = online_experiment(classifier, df_input_not_normalized_ozone, normalization, num_classes)
 
     df_result = smooth_classification(df_result, 100, num_classes)
 
-    true_positive, false_positive, true_negative, false_negative = metrics(df_result, threshold, num_classes)
-    plot_data(df_result, threshold, normalization, num_classes)
+    true_positive, false_positive, true_negative, false_negative = metrics(df_result, threshold, num_classes, objective)
+    plot_data(df_result, threshold, normalization, num_classes, objective)
 
     return true_positive, false_positive, true_negative, false_negative
 
