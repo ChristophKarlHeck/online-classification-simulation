@@ -90,12 +90,18 @@ def plot_data(df_classified: pd.DataFrame, threshold: float, normalization: str,
                         where=(df_classified["smoothed_heat_mean"] > threshold),# & (df_classified["ch1_smoothed_heat"] > threshold), 
                         color='#722F37', alpha=0.3, label="Stimulus prediction")
 
-
-        axs[0].fill_between(
-            df_classified['datetime'], 0, 1.0, 
-            where=(df_classified["heat_ground_truth"] == 1), 
-            color='#DC143C', alpha=0.3, label="Stimulus application"
-        )
+        if objective == "temp":
+            axs[0].fill_between(
+                df_classified['datetime'], 0, 1.0, 
+                where=(df_classified["heat_ground_truth"] == 1), 
+                color='#DC143C', alpha=0.3, label="Stimulus application"
+            )
+        if objective == "ozone":
+            axs[0].fill_between(
+                df_classified['datetime'], 0, 1.0, 
+                where=(df_classified["ozone_ground_truth"] == 1), 
+                color='#DC143C', alpha=0.3, label="Stimulus application"
+            )
 
 
     # Ensure y-axis limits and set explicit tick marks
