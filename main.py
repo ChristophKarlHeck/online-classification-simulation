@@ -21,7 +21,7 @@ def plot_data(df_classified: pd.DataFrame, threshold: float, normalization: str,
 
     #------------------Prepare Data for Plot---------------------------------------#
     window_size = 100 # 100 = 10min
-    df_classified['datetime'] = pd.to_datetime(df_classified['datetime'], format='%Y-%m-%d %H:%M:%S', errors='coerce')
+    df_classified['datetime'] = pd.to_datetime(df_classified['datetime'], format='%Y-%m-%d %H:%M:%S:%f', errors='coerce')
     df_classified['datetime'] = df_classified['datetime'] + pd.Timedelta(hours=1)
     df_classified['LastVoltageCh0'] = df_classified['input_normalized_ch0'].apply(lambda x: x[-1])
     df_classified['LastVoltageCh1'] = df_classified['input_normalized_ch1'].apply(lambda x: x[-1])
