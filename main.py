@@ -405,7 +405,7 @@ def main(data_dir=None, classifier_dir=None, normalization=None, prefix=None, th
         parser.add_argument("--prefix", required=True, type=str, help="C1, basically choose the plant.")
         parser.add_argument("--threshold", required=False, type=float, default=0.8, help="Threshold for optimization")
         parser.add_argument("--num_classes", type=int, choices=[2, 3], default=2)
-        parser.add_argument("--objective", type=int, choices=["temp", "ozone"], default=2)
+        parser.add_argument("--objective", type=str, choices=["temp", "ozone"], default=2)
         args = parser.parse_args()
         # Use parsed args for any parameters not passed to main()
         if data_dir is None: 
