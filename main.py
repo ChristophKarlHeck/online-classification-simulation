@@ -15,7 +15,7 @@ online_window_ch0 = OnlineWindow(600) #600
 online_window_ch1 = OnlineWindow(600) #600
 factor = 1000
 
-def plot_data(df_classified: pd.DataFrame, threshold: float, normalization: str,  objective: str) -> None:
+def plot_data(df_classified: pd.DataFrame, threshold: float, normalization: str,  objective: str, validation_method: str) -> None:
     
     plant_id=999
     #------------------Prepare Data for Plot---------------------------------------#
@@ -46,23 +46,57 @@ def plot_data(df_classified: pd.DataFrame, threshold: float, normalization: str,
         ax.tick_params(axis='x', labelsize=10)  # Set font size to 10
         plt.setp(ax.get_xticklabels(), fontsize=10, rotation=0, ha='center')
 
-    # Scatter plot for classification
-    axs[0].plot(df_classified['datetime'], df_classified["ch0_smoothed"], label="CH0", color="blue")
-    axs[0].plot(df_classified['datetime'], df_classified["ch1_smoothed"], label="CH1", color="orange")
-
-    axs[0].axhline(y=threshold, color="red", linestyle="--", linewidth=1, label=f"Threshold: {threshold}")
+    axs[0].axhline(y=threshold, color="black", linestyle="--", linewidth=1, label=f"Threshold: {threshold}")
 
 
     if objective == "temp":
-        axs[0].fill_between(df_classified['datetime'], 0, 1.0, 
-                        where=(df_classified["smoothed_heat_mean"] > threshold),# & (df_classified["ch1_smoothed_heat"] > threshold), 
-                        color='#722F37', alpha=0.3, label="Stimulus prediction")
 
         axs[0].fill_between(
             df_classified['datetime'], 0, 1.0, 
             where=(df_classified["heat_ground_truth"] == 1), 
             color='#DC143C', alpha=0.3, label="Stimulus application"
         )
+
+        if validation_method == "both":
+            # Scatter plot for classification
+            axs[0].plot(df_classified['datetime'], df_classified["ch0_smoothed"], label="CH0", color="#FF0000")
+            axs[0].plot(df_classified['datetime'], df_classified["ch1_smoothed"], label="CH1", color="#8B0000")
+
+            high_both = (df_classified["ch0_smoothed"] > threshold) & (df_classified["ch1_smoothed"] > threshold)
+            axs[0].fill_between(df_classified['datetime'], 0, 1.0, 
+                where=(high_both),
+                color='#722F37', alpha=0.3, label="Stimulus prediction")
+
+        if validation_method == "min":
+            # Scatter plot for classification
+            min_smoothed = df_classified[["ch0_smoothed", "ch1_smoothed"]].min(axis=1)
+            axs[0].plot(df_classified['datetime'], min_smoothed, label="Min of CH0 & CH1", color="#C50000")
+
+            above_threshold = min_smoothed > threshold
+            axs[0].fill_between(df_classified['datetime'], 0, 1.0, 
+                where=(above_threshold),
+                color='#722F37', alpha=0.3, label="Stimulus prediction")
+
+        if validation_method == "max":
+            # Scatter plot for classification
+            max_smoothed = df_classified[["ch0_smoothed", "ch1_smoothed"]].max(axis=1)
+            axs[0].plot(df_classified['datetime'], max_smoothed, label="Min of CH0 & CH1", color="#C50000")
+
+            above_threshold = max_smoothed > threshold
+            axs[0].fill_between(df_classified['datetime'], 0, 1.0, 
+                where=(above_threshold),
+                color='#722F37', alpha=0.3, label="Stimulus prediction")
+
+        if validation_method == "mean":
+            # Scatter plot for classification
+            mean_smoothed = df_classified[["ch0_smoothed", "ch1_smoothed"]].mean(axis=1)
+            axs[0].plot(df_classified['datetime'], mean_smoothed, label="Min of CH0 & CH1", color="#C50000")
+
+            above_threshold = mean_smoothed > threshold
+            axs[0].fill_between(df_classified['datetime'], 0, 1.0, 
+                where=(above_threshold),
+                color='#722F37', alpha=0.3, label="Stimulus prediction")
+
     if objective == "ozone":
         axs[0].fill_between(df_classified['datetime'], 0, 1.0, 
                         where=(df_classified["smoothed_ozone_mean"] > threshold),# & (df_classified["ch1_smoothed_heat"] > threshold), 
@@ -218,24 +252,19 @@ def metrics(df_classified: pd.DataFrame, threshold: float, objective: str, valid
     false_negative_cases = 0
 
     if validation_method == "both":
-        true_positive_cases, false_positive_cases, true_negative_cases, false_negative_cases = both_channels_higher_threshhold(objective)
+        true_positive_cases, false_positive_cases, true_negative_cases, false_negative_cases = both_channels_higher_threshhold(df_classified, objective, threshold)
 
     if validation_method == "min":
-        true_positive_cases, false_positive_cases, true_negative_cases, false_negative_cases = min_prob_higher_threshold(objective)
+        true_positive_cases, false_positive_cases, true_negative_cases, false_negative_cases = min_prob_higher_threshold(df_classified, objective, threshold)
 
     if validation_method == "max":
-        true_positive_cases, false_positive_cases, true_negative_cases, false_negative_cases = max_prob_higher_threshold(objective)
+        true_positive_cases, false_positive_cases, true_negative_cases, false_negative_cases = max_prob_higher_threshold(df_classified, objective, threshold)
 
     if validation_method == "mean":
-        true_positive_cases, false_positive_cases, true_negative_cases, false_negative_cases = mean_prob_higher_threshold(objective)
+        true_positive_cases, false_positive_cases, true_negative_cases, false_negative_cases = mean_prob_higher_threshold(df_classified, objective, threshold)
 
-    
-    true_positive = true_positive_cases.sum()
-    false_positive = false_positive_cases.sum()
-    true_negative = true_negative_cases.sum()
-    false_negative = false_negative_cases.sum()
 
-    return true_positive, false_positive, true_negative, false_negative
+    return true_positive_cases, false_positive_cases, true_negative_cases, false_negative_cases
 
 def load_classifier(path_to_trained_model: str):
     """Loads a trained PyTorch model dynamically from a `.pt` file."""
@@ -441,7 +470,7 @@ def main(data_dir=None, classifier_dir=None, normalization=None, prefix=None, th
         if objective is None: 
             objective = args.objective
         if validation_method is None: 
-            validation_method = validation_method
+            validation_method = args.validation_method
 
     classifier = load_classifier(classifier_dir)
     df_result = None
@@ -456,6 +485,7 @@ def main(data_dir=None, classifier_dir=None, normalization=None, prefix=None, th
     df_result = smooth_classification(df_result, 100)
 
     true_positive, false_positive, true_negative, false_negative = metrics(df_result, threshold, objective, validation_method)
+    print(validation_method)
     plot_data(df_result, threshold, normalization, objective, validation_method)
 
     return true_positive, false_positive, true_negative, false_negative
