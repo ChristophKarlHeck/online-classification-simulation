@@ -79,3 +79,25 @@ python3 main.py --data_dir /home/chris/experiment_data/14_2025_03_14-2025_03_21/
 ```bash
 python3 main.py --data_dir /home/chris/experiment_data/ozone_cut/ozone_cut/Exp44_Ivy2/simulation --classifier_dir /home/chris/online-classification-simulation/FCN_temp_ozone/z-score --normalization z-score --prefix C1  --threshold 0.33 --num_classes 3 --objective ozone
 ```
+
+### Adjusted min max
+
+```bash
+python3 main.py --data_dir /home/chris/experiment_data/10_2025_02_20-2025_02_27/classification --classifier_dir /home/chris/online-classification-simulation/FCN_temperature/adjusted-min-max/model_0 --normalization adjusted-min-max --prefix C1  --threshold 0.5 --num_classes 2 --objective temp
+```
+
+```bash
+python3 main.py --data_dir /home/chris/experiment_data/11_2025_02_27-2025_03_04/classification --classifier_dir /home/chris/online-classification-simulation/FCN_temperature/adjusted-min-max/model_0 --normalization adjusted-min-max --prefix C1  --threshold 0.5 --num_classes 2 --objective temp
+```
+
+```bash
+python3 main.py --data_dir /home/chris/experiment_data/12_2025_03_06-2025_03_10/classification --classifier_dir /home/chris/online-classification-simulation/FCN_temperature/adjusted-min-max/model_0 --normalization adjusted-min-max --prefix C1  --threshold 0.5 --num_classes 2 --objective temp
+```
+
+```bash
+python3 main.py --data_dir /home/chris/experiment_data/13_2025_03_11-2025_03_14/classification --classifier_dir /home/chris/online-classification-simulation/FCN_temperature/adjusted-min-max/model_0 --normalization adjusted-min-max --prefix C1  --threshold 0.5 --num_classes 2 --objective temp
+```
+
+```bash
+python3 main.py --data_dir /home/chris/experiment_data/14_2025_03_14-2025_03_21/classification --classifier_dir /home/chris/online-classification-simulation/FCN_temperature/adjusted-min-max/model_0 --normalization adjusted-min-max --prefix C1  --threshold 0.5 --num_classes 2 --objective temp
+```

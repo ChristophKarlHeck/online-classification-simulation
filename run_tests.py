@@ -32,13 +32,19 @@ data_dirs = [
 # ]
 
 normalization_dirs = [
-    "/home/chris/online-classification-simulation/z-score"
+    "/home/chris/online-classification-simulation/FCN_temperature/model_0"
+    "/home/chris/online-classification-simulation/FCN_temperature/model_1"
+    "/home/chris/online-classification-simulation/FCN_temperature/model_2"
+    "/home/chris/online-classification-simulation/FCN_temperature/model_3"
+    "/home/chris/online-classification-simulation/FCN_temperature/model_4"
 ]
 
 prefixes = ["C1", "C2"]
 
 result_dir = "/home/chris/experiment_data/Test"
 os.makedirs(result_dir, exist_ok=True)
+
+threshold = 0.5
 
 for prefix in [prefixes[0]]:
     for normalization_dir in normalization_dirs:
@@ -54,14 +60,8 @@ for prefix in [prefixes[0]]:
             # Write header to CSV file.
             writer.writerow(header)
 
-            # Iterate over threshold values from 0.01 to 0.99 (inclusive)
-            for i in range(1, 100):  # i from 1 to 99
-                threshold = round(i / 100.0, 2)
-                if i % 10 == 0:
-                    logging.info(f"{filename}: Processing threshold {threshold}")
-
                 # For the first data_dir (labeled with "10"), always use prefix "C1"
-                tp10, fp10, tn10, fn10 = main.main(
+            tp10, fp10, tn10, fn10 = main.main(
                     data_dir=data_dirs[0],
                     classifier_dir=normalization_dir,
                     normalization=normalization,
@@ -70,28 +70,28 @@ for prefix in [prefixes[0]]:
                 )
 
                 # For the remaining data_dirs, use the current prefix value.
-                tp11, fp11, tn11, fn11 = main.main(
+            tp11, fp11, tn11, fn11 = main.main(
                     data_dir=data_dirs[1],
                     classifier_dir=normalization_dir,
                     normalization=normalization,
                     prefix=prefix,
                     threshold=threshold
                 )
-                tp12, fp12, tn12, fn12 = main.main(
+            tp12, fp12, tn12, fn12 = main.main(
                     data_dir=data_dirs[2],
                     classifier_dir=normalization_dir,
                     normalization=normalization,
                     prefix=prefix,
                     threshold=threshold
                 )
-                tp13, fp13, tn13, fn13 = main.main(
+            tp13, fp13, tn13, fn13 = main.main(
                     data_dir=data_dirs[3],
                     classifier_dir=normalization_dir,
                     normalization=normalization,
                     prefix=prefix,
                     threshold=threshold
                 )
-                tp14, fp14, tn14, fn14 = main.main(
+            tp14, fp14, tn14, fn14 = main.main(
                     data_dir=data_dirs[4],
                     classifier_dir=normalization_dir,
                     normalization=normalization,
@@ -100,7 +100,7 @@ for prefix in [prefixes[0]]:
                 )
 
                 # Create the row of data to be written.
-                row = [
+            row = [
                     threshold,
                     tp10, fp10, tn10, fn10,
                     tp11, fp11, tn11, fn11,
@@ -108,6 +108,6 @@ for prefix in [prefixes[0]]:
                     tp13, fp13, tn13, fn13,
                     tp14, fp14, tn14, fn14
                 ]
-                writer.writerow(row)
-                logging.info(f"Wrote row: {threshold}")
+            writer.writerow(row)
+            logging.info(f"Wrote row: {threshold}")
         logging.info(f"Finished processing file: {filename}")
