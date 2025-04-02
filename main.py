@@ -486,7 +486,7 @@ def main(data_dir=None, classifier_dir=None, normalization=None, prefix=None, th
 
     true_positive, false_positive, true_negative, false_negative = metrics(df_result, threshold, objective, validation_method)
     print(validation_method)
-    plot_data(df_result, threshold, normalization, objective, validation_method)
+    #plot_data(df_result, threshold, normalization, objective, validation_method)
 
     return true_positive, false_positive, true_negative, false_negative
 

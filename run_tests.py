@@ -23,23 +23,19 @@ data_dirs = [
     "/home/chris/experiment_data/14_2025_03_14-2025_03_21/classification"
 ]
 
-# normalization_dirs = [
-#     "/home/chris/online-classification-simulation/adjusted-min-max",
-#     "/home/chris/online-classification-simulation/min-max",
-#     "/home/chris/online-classification-simulation/min-max-sliding-window-60-min",
-#     "/home/chris/online-classification-simulation/z-score",
-#     "/home/chris/online-classification-simulation/z-score-sliding-window-60-min"
-# ]
-
 normalization_dirs = [
-    "/home/chris/online-classification-simulation/FCN_temperature/model_0"
-    "/home/chris/online-classification-simulation/FCN_temperature/model_1"
-    "/home/chris/online-classification-simulation/FCN_temperature/model_2"
-    "/home/chris/online-classification-simulation/FCN_temperature/model_3"
-    "/home/chris/online-classification-simulation/FCN_temperature/model_4"
+    "/home/chris/online-classification-simulation/FCN_temperature/adjusted-min-max/model_0",
+    "/home/chris/online-classification-simulation/FCN_temperature/adjusted-min-max/model_1",
+    "/home/chris/online-classification-simulation/FCN_temperature/adjusted-min-max/model_2",
+    "/home/chris/online-classification-simulation/FCN_temperature/adjusted-min-max/model_3",
+    "/home/chris/online-classification-simulation/FCN_temperature/adjusted-min-max/model_4",
 ]
 
+validation_methods = ["min", "max", "both", "mean"]
+
 prefixes = ["C1", "C2"]
+
+objective = "temp"
 
 result_dir = "/home/chris/experiment_data/Test"
 os.makedirs(result_dir, exist_ok=True)
@@ -47,67 +43,81 @@ os.makedirs(result_dir, exist_ok=True)
 threshold = 0.5
 
 for prefix in [prefixes[0]]:
-    for normalization_dir in normalization_dirs:
-        # Extract the normalization name from the directory (e.g., "adjusted-min-max")
-        normalization = normalization_dir.rstrip('/').split("/")[-1]
+    for validation_method in validation_methods:
+        for normalization_dir in normalization_dirs:
+            # Extract the normalization name from the directory (e.g., "adjusted-min-max")
+            model = normalization_dir.rstrip('/').split("/")[-1]
+            normalization = normalization_dir.rstrip('/').split("/")[-2]
 
-        # Create the filename and open the CSV file for writing.
-        filename = f"{normalization}-{prefix}-results.csv"
-        filepath = os.path.join(result_dir, filename)
-        logging.info(f"Starting processing for file: {filename}")
-        with open(filepath, mode="w", newline="") as csvfile:
-            writer = csv.writer(csvfile)
-            # Write header to CSV file.
-            writer.writerow(header)
+            # Create the filename and open the CSV file for writing.
+            filename = f"{model}-{prefix}-{validation_method}--results.csv"
+            filepath = os.path.join(result_dir, validation_method)
+            os.makedirs(filepath, exist_ok=True)
+            filepath_name = os.path.join(filepath, filename)
+            logging.info(f"Starting processing for file: {filename}")
+            with open(filepath_name, mode="w", newline="") as csvfile:
+                writer = csv.writer(csvfile)
+                # Write header to CSV file.
+                writer.writerow(header)
 
-                # For the first data_dir (labeled with "10"), always use prefix "C1"
-            tp10, fp10, tn10, fn10 = main.main(
-                    data_dir=data_dirs[0],
-                    classifier_dir=normalization_dir,
-                    normalization=normalization,
-                    prefix="C1",  # data_dirs[0] does not have a prefix C2
-                    threshold=threshold
-                )
+                    # For the first data_dir (labeled with "10"), always use prefix "C1"
+                tp10, fp10, tn10, fn10 = main.main(
+                        data_dir=data_dirs[0],
+                        classifier_dir=normalization_dir,
+                        normalization=normalization,
+                        prefix="C1",  # data_dirs[0] does not have a prefix C2
+                        threshold=threshold,
+                        objective=objective,
+                        validation_method=validation_method
+                    )
 
-                # For the remaining data_dirs, use the current prefix value.
-            tp11, fp11, tn11, fn11 = main.main(
-                    data_dir=data_dirs[1],
-                    classifier_dir=normalization_dir,
-                    normalization=normalization,
-                    prefix=prefix,
-                    threshold=threshold
-                )
-            tp12, fp12, tn12, fn12 = main.main(
-                    data_dir=data_dirs[2],
-                    classifier_dir=normalization_dir,
-                    normalization=normalization,
-                    prefix=prefix,
-                    threshold=threshold
-                )
-            tp13, fp13, tn13, fn13 = main.main(
-                    data_dir=data_dirs[3],
-                    classifier_dir=normalization_dir,
-                    normalization=normalization,
-                    prefix=prefix,
-                    threshold=threshold
-                )
-            tp14, fp14, tn14, fn14 = main.main(
-                    data_dir=data_dirs[4],
-                    classifier_dir=normalization_dir,
-                    normalization=normalization,
-                    prefix=prefix,
-                    threshold=threshold
-                )
+                    # For the remaining data_dirs, use the current prefix value.
+                tp11, fp11, tn11, fn11 = main.main(
+                        data_dir=data_dirs[1],
+                        classifier_dir=normalization_dir,
+                        normalization=normalization,
+                        prefix=prefix,
+                        threshold=threshold,
+                        objective=objective,
+                        validation_method=validation_method
+                    )
+                tp12, fp12, tn12, fn12 = main.main(
+                        data_dir=data_dirs[2],
+                        classifier_dir=normalization_dir,
+                        normalization=normalization,
+                        prefix=prefix,
+                        threshold=threshold,
+                        objective=objective,
+                        validation_method=validation_method
+                    )
+                tp13, fp13, tn13, fn13 = main.main(
+                        data_dir=data_dirs[3],
+                        classifier_dir=normalization_dir,
+                        normalization=normalization,
+                        prefix=prefix,
+                        threshold=threshold,
+                        objective=objective,
+                        validation_method=validation_method
+                    )
+                tp14, fp14, tn14, fn14 = main.main(
+                        data_dir=data_dirs[4],
+                        classifier_dir=normalization_dir,
+                        normalization=normalization,
+                        prefix=prefix,
+                        threshold=threshold,
+                        objective=objective,
+                        validation_method=validation_method
+                    )
 
-                # Create the row of data to be written.
-            row = [
-                    threshold,
-                    tp10, fp10, tn10, fn10,
-                    tp11, fp11, tn11, fn11,
-                    tp12, fp12, tn12, fn12,
-                    tp13, fp13, tn13, fn13,
-                    tp14, fp14, tn14, fn14
-                ]
-            writer.writerow(row)
-            logging.info(f"Wrote row: {threshold}")
-        logging.info(f"Finished processing file: {filename}")
+                    # Create the row of data to be written.
+                row = [
+                        threshold,
+                        tp10, fp10, tn10, fn10,
+                        tp11, fp11, tn11, fn11,
+                        tp12, fp12, tn12, fn12,
+                        tp13, fp13, tn13, fn13,
+                        tp14, fp14, tn14, fn14
+                    ]
+                writer.writerow(row)
+                logging.info(f"Wrote row: {threshold}")
+            logging.info(f"Finished processing file: {filename}")
