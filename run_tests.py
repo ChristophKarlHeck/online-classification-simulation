@@ -31,7 +31,7 @@ normalization_dirs = [
     "/home/chris/online-classification-simulation/FCN_temperature/adjusted-min-max/model_4",
 ]
 
-validation_methods = ["min", "max", "both", "mean"]
+validation_methods = ["max", "both", "mean"]
 
 prefixes = ["C1", "C2"]
 
@@ -50,7 +50,7 @@ for prefix in [prefixes[0]]:
             normalization = normalization_dir.rstrip('/').split("/")[-2]
 
             # Create the filename and open the CSV file for writing.
-            filename = f"{model}-{prefix}-{validation_method}--results.csv"
+            filename = f"{model}-{prefix}-{validation_method}-results.csv"
             filepath = os.path.join(result_dir, validation_method)
             os.makedirs(filepath, exist_ok=True)
             filepath_name = os.path.join(filepath, filename)
