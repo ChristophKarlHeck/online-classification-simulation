@@ -16,7 +16,6 @@ online_window_ch1 = OnlineWindow(600) #600
 factor = 1000
 
 def plot_data(df_classified: pd.DataFrame, threshold: float, normalization: str,  objective: str, validation_method: str) -> None:
-    
     plant_id=999
     #------------------Prepare Data for Plot---------------------------------------#
     window_size = 100 # 100 = 10min
@@ -34,7 +33,6 @@ def plot_data(df_classified: pd.DataFrame, threshold: float, normalization: str,
     fig_width = 5.90666  # Width in inches
     aspect_ratio = 0.618  # Example aspect ratio (height/width)
     fig_height = fig_width * aspect_ratio
-
 
     fig, axs = plt.subplots(2, 1, figsize=(fig_width, 8), sharex=True)
 
@@ -486,7 +484,7 @@ def main(data_dir=None, classifier_dir=None, normalization=None, prefix=None, th
 
     true_positive, false_positive, true_negative, false_negative = metrics(df_result, threshold, objective, validation_method)
     print(validation_method)
-    #plot_data(df_result, threshold, normalization, objective, validation_method)
+    plot_data(df_result, threshold, normalization, objective, validation_method)
 
     return true_positive, false_positive, true_negative, false_negative
 
