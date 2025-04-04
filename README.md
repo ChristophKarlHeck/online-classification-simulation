@@ -106,3 +106,8 @@ python3 main.py --data_dir /home/chris/experiment_data/14_2025_03_14-2025_03_21/
 ```bash
 python3 main.py --data_dir /home/chris/experiment_data/10_2025_02_20-2025_02_27/classification_30min --classifier_dir /home/chris/online-classification-simulation/FCN_temp_30min_input/adjusted-min-max/model_0 --normalization adjusted-min-max --prefix C1  --threshold 0.5 --objective temp --validation_method both
 ```
+
+### Adjusted min max 10 min input
+```bash
+python3 main.py --data_dir /home/chris/experiment_data/10_2025_02_20-2025_02_27/classification --classifier_dir /home/chris/online-classification-simulation/FCN_temp_10min_input/min-max/model_0 --normalization min-max --prefix C1  --threshold 0.5 --objective temp --validation_method both
+```

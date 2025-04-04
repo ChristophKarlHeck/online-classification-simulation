@@ -398,7 +398,7 @@ def apply_normalization(arr: np.ndarray, normalization: str, channel: bool) -> n
             return z_score(arr, factor, online_window_ch1.get_mean(), online_window_ch1.get_std())
 
     elif normalization == "min-max":
-        return min_max(arr, -10, 10.0, factor)
+        return min_max(arr, -200, 200, factor)
     
     elif normalization == "z-score":
         return z_score(arr, factor)
