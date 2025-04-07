@@ -11,9 +11,8 @@ import os
 from online_window import OnlineWindow
 from typing import Optional
 
-online_window_ch0 = OnlineWindow(600) #600
-online_window_ch1 = OnlineWindow(600) #600
-factor = 1000
+# online_window_ch0 = OnlineWindow(600) #600
+# online_window_ch1 = OnlineWindow(600) #600
 
 def plot_data(df_classified: pd.DataFrame, threshold: float, normalization: str,  objective: str, validation_method: str) -> None:
     plant_id=999
@@ -21,11 +20,11 @@ def plot_data(df_classified: pd.DataFrame, threshold: float, normalization: str,
     window_size = 100 # 100 = 10min
     if objective == "temp":
         pd.options.display.max_columns = None
-        df_classified['datetime'] = pd.to_datetime(df_classified['datetime'], format='%Y-%m-%d %H:%M:%S', errors='coerce')
+        df_classified['datetime'] = pd.to_datetime(df_classified['datetime'], errors='coerce')
         df_classified['datetime'] = df_classified['datetime'] + pd.Timedelta(hours=1)
     if objective == "ozone":
         pd.options.display.max_columns = None
-        df_classified['datetime'] = pd.to_datetime(df_classified['datetime'], format='%Y-%m-%d %H:%M:%S.%f', errors='coerce')
+        df_classified['datetime'] = pd.to_datetime(df_classified['datetime'], errors='coerce')
     df_classified['LastVoltageCh0'] = df_classified['input_normalized_ch0'].apply(lambda x: x[-1])
     df_classified['LastVoltageCh1'] = df_classified['input_normalized_ch1'].apply(lambda x: x[-1])
     df_classified["LastVoltageCh0"] = df_classified["LastVoltageCh0"].rolling(window=window_size, min_periods=1).mean()
@@ -140,6 +139,9 @@ def smooth_classification(df_classified: pd.DataFrame, window_size: int) -> pd.D
 
     df_classified["ch0_smoothed"] = df_classified["classification_ch0"].rolling(window=window_size, min_periods=1).mean()
     df_classified["ch1_smoothed"] = df_classified["classification_ch1"].rolling(window=window_size, min_periods=1).mean()
+
+    # df_classified["ch0_smoothed"] = df_classified["classification_ch0"]#.rolling(window=window_size, min_periods=1).mean()
+    # df_classified["ch1_smoothed"] = df_classified["classification_ch1"]#.rolling(window=window_size, min_periods=1).mean()
 
     return df_classified
 
@@ -310,7 +312,6 @@ def load_temp_data(data_dir: str, prefix: str) -> pd.DataFrame:
         "ground_truth": "heat_ground_truth"
     }, inplace=True)
 
-    print(df.head())
     "Columns: datetime, heat_ground_truth, input_not_normalized_ch0, input_not_normalized_ch1"
     return df
 
@@ -353,55 +354,54 @@ def adjusted_min_max(arr: np.ndarray) -> np.ndarray:
     return (arr - min_val) / (max_val - min_val)
 
 
-def min_max(arr: np.ndarray, min_val: float, max_val: float, factor: float) -> np.ndarray:
+def min_max(arr: np.ndarray) -> np.ndarray:
     """Adjusted Min-Max Normalization"""
-
+    min_val = -200
+    max_val = 200
     arr = np.array(arr, dtype=np.float32)
-    return ((arr - min_val) / (max_val - min_val))*factor
+    return ((arr - min_val) / (max_val - min_val)) * 1000
 
 
-def z_score(arr: np.ndarray, factor: float = 1.0, mean_val: Optional[float] = None, std_val: Optional[float] = None) -> np.ndarray:
+def z_score(arr: np.ndarray) -> np.ndarray:
     """
     Applies z-score normalization to the array and scales it by the given factor.
     """
     arr = np.array(arr, dtype=np.float32)
-    
-    if mean_val is None:
-        mean_val = np.mean(arr)
-    if std_val is None:
-        std_val = np.std(arr)
+    mean_val = np.mean(arr)
+    std_val = np.std(arr)
     
     if std_val == 0:
+        print("STOP")
         return np.zeros_like(arr)
     
-    return ((arr - mean_val) / std_val) * factor
+    return ((arr - mean_val) / std_val) * 1000
 
 
 def apply_normalization(arr: np.ndarray, normalization: str, channel: bool) -> np.ndarray:
     """Applies the selected normalization method."""
     if normalization == "adjusted-min-max":
         return adjusted_min_max(arr)
-    elif normalization == "min-max-sliding-window-60-min":
-        if not channel:
-            online_window_ch0.update(arr)
-            return min_max(arr, online_window_ch0.get_min_value(), online_window_ch0.get_max_value(), factor)
-        else:
-            online_window_ch1.update(arr)
-            return min_max(arr, online_window_ch1.get_min_value(), online_window_ch1.get_max_value(), factor)
+    # elif normalization == "min-max-sliding-window-60-min":
+    #     if not channel:
+    #         online_window_ch0.update(arr)
+    #         return min_max(arr, online_window_ch0.get_min_value(), online_window_ch0.get_max_value(), factor)
+    #     else:
+    #         online_window_ch1.update(arr)
+    #         return min_max(arr, online_window_ch1.get_min_value(), online_window_ch1.get_max_value(), factor)
 
-    elif normalization == "z-score-sliding-window-60-min":
-        if not channel:
-            online_window_ch0.update(arr)
-            return z_score(arr, factor, online_window_ch0.get_mean(), online_window_ch0.get_std())
-        else:
-            online_window_ch1.update(arr)
-            return z_score(arr, factor, online_window_ch1.get_mean(), online_window_ch1.get_std())
+    # elif normalization == "z-score-sliding-window-60-min":
+    #     if not channel:
+    #         online_window_ch0.update(arr)
+    #         return z_score(arr, factor, online_window_ch0.get_mean(), online_window_ch0.get_std())
+    #     else:
+    #         online_window_ch1.update(arr)
+    #         return z_score(arr, factor, online_window_ch1.get_mean(), online_window_ch1.get_std())
 
     elif normalization == "min-max":
-        return min_max(arr, -200, 200, factor)
+        return min_max(arr)
     
     elif normalization == "z-score":
-        return z_score(arr, factor)
+        return z_score(arr)
 
     else:
         raise ValueError(f"Unsupported normalization method: {normalization}")
