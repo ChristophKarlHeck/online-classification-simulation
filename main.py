@@ -96,7 +96,7 @@ def plot_data(df_classified: pd.DataFrame, threshold: float, normalization: str,
 
     if objective == "ozone":
         axs[0].fill_between(df_classified['datetime'], 0, 1.0, 
-                        where=(df_classified["smoothed_ozone_mean"] > threshold),# & (df_classified["ch1_smoothed_heat"] > threshold), 
+                        where=(df_classified["smoothed_ozone"] > threshold),# & (df_classified["ch1_smoothed_heat"] > threshold), 
                         color='#000080', alpha=0.3, label="Stimulus prediction")
         
         axs[0].fill_between(
@@ -140,8 +140,8 @@ def smooth_classification(df_classified: pd.DataFrame, window_size: int) -> pd.D
     df_classified["ch0_smoothed"] = df_classified["classification_ch0"].rolling(window=window_size, min_periods=1).mean()
     df_classified["ch1_smoothed"] = df_classified["classification_ch1"].rolling(window=window_size, min_periods=1).mean()
 
-    # df_classified["ch0_smoothed"] = df_classified["classification_ch0"]#.rolling(window=window_size, min_periods=1).mean()
-    # df_classified["ch1_smoothed"] = df_classified["classification_ch1"]#.rolling(window=window_size, min_periods=1).mean()
+    #df_classified["ch0_smoothed"] = df_classified["classification_ch0"]#.rolling(window=window_size, min_periods=1).mean()
+    #df_classified["ch1_smoothed"] = df_classified["classification_ch1"]#.rolling(window=window_size, min_periods=1).mean()
 
     return df_classified
 
@@ -374,7 +374,7 @@ def z_score(arr: np.ndarray) -> np.ndarray:
         print("STOP")
         return np.zeros_like(arr)
     
-    return ((arr - mean_val) / std_val) * 1000
+    return ((arr - mean_val) / std_val)
 
 
 def apply_normalization(arr: np.ndarray, normalization: str, channel: bool) -> np.ndarray:
@@ -421,6 +421,7 @@ def online_experiment(classifier, df_input_not_normalized: pd.DataFrame, normali
 
         if isinstance(row["input_not_normalized_ch0"], (list, np.ndarray)):
             normalized_ch0 = apply_normalization(np.array(row["input_not_normalized_ch0"]), normalization, False)
+            #normalized_ch0 = row["input_not_normalized_ch0"]
             input_tensor_ch0 = torch.tensor(normalized_ch0, dtype=torch.float32).unsqueeze(0).unsqueeze(0)
             with torch.no_grad():
                 prediction_ch0 = classifier(input_tensor_ch0)
@@ -431,6 +432,7 @@ def online_experiment(classifier, df_input_not_normalized: pd.DataFrame, normali
 
         if isinstance(row["input_not_normalized_ch1"], (list, np.ndarray)):
             normalized_ch1 = apply_normalization(np.array(row["input_not_normalized_ch1"]), normalization, True)
+            #normalized_ch1 = row["input_not_normalized_ch1"]
             input_tensor_ch1 = torch.tensor(normalized_ch1, dtype=torch.float32).unsqueeze(0).unsqueeze(0)
             with torch.no_grad():
                 prediction_ch1 = classifier(input_tensor_ch1)

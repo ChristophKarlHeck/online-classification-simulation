@@ -1,0 +1,2 @@
+trial,output_channels_1,output_channels_2,output_channels_3,kernel_size_1,kernel_size_2,kernel_size_3,padding_1,padding_2,padding_3,lr,batch_size,weight_decay,test_accuracy,path
+13,4,32,16,5,5,7,2,2,3,0.0002618603626506457,64,0.008554102805532952,0.8007026314735413,/home/chris/watchplant_classification_dl/pipline_test/FCN_ozone_10min_input/lightning_logs/version_195/checkpoints/epoch=476-step=224190.ckpt
