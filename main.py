@@ -95,15 +95,52 @@ def plot_data(df_classified: pd.DataFrame, threshold: float, normalization: str,
                 color='#722F37', alpha=0.3, label="Stimulus prediction")
 
     if objective == "ozone":
-        axs[0].fill_between(df_classified['datetime'], 0, 1.0, 
-                        where=(df_classified["smoothed_ozone"] > threshold),# & (df_classified["ch1_smoothed_heat"] > threshold), 
-                        color='#000080', alpha=0.3, label="Stimulus prediction")
-        
+       
         axs[0].fill_between(
             df_classified['datetime'], 0, 1.0, 
             where=(df_classified["ozone_ground_truth"] == 1), 
             color='#4169E1', alpha=0.3, label="Stimulus application"
         )
+
+        if validation_method == "both":
+            # Scatter plot for classification
+            axs[0].plot(df_classified['datetime'], df_classified["ch0_smoothed"], label="CH0", color="#0000FF")
+            axs[0].plot(df_classified['datetime'], df_classified["ch1_smoothed"], label="CH1", color="#003153")
+
+            high_both = (df_classified["ch0_smoothed"] > threshold) & (df_classified["ch1_smoothed"] > threshold)
+            axs[0].fill_between(df_classified['datetime'], 0, 1.0, 
+                where=(high_both),
+                color='#223A5E', alpha=0.3, label="Stimulus prediction")
+
+        if validation_method == "min":
+            # Scatter plot for classification
+            min_smoothed = df_classified[["ch0_smoothed", "ch1_smoothed"]].min(axis=1)
+            axs[0].plot(df_classified['datetime'], min_smoothed, label="Min of CH0 & CH1", color="#001C99")
+
+            above_threshold = min_smoothed > threshold
+            axs[0].fill_between(df_classified['datetime'], 0, 1.0, 
+                where=(above_threshold),
+                color='#223A5E', alpha=0.3, label="Stimulus prediction")
+
+        if validation_method == "max":
+            # Scatter plot for classification
+            max_smoothed = df_classified[["ch0_smoothed", "ch1_smoothed"]].max(axis=1)
+            axs[0].plot(df_classified['datetime'], max_smoothed, label="Min of CH0 & CH1", color="#001C99")
+
+            above_threshold = max_smoothed > threshold
+            axs[0].fill_between(df_classified['datetime'], 0, 1.0, 
+                where=(above_threshold),
+                color='#223A5E', alpha=0.3, label="Stimulus prediction")
+
+        if validation_method == "mean":
+            # Scatter plot for classification
+            mean_smoothed = df_classified[["ch0_smoothed", "ch1_smoothed"]].mean(axis=1)
+            axs[0].plot(df_classified['datetime'], mean_smoothed, label="Min of CH0 & CH1", color="#001C99")
+
+            above_threshold = mean_smoothed > threshold
+            axs[0].fill_between(df_classified['datetime'], 0, 1.0, 
+                where=(above_threshold),
+                color='#223A5E', alpha=0.3, label="Stimulus prediction")
 
 
     # Ensure y-axis limits and set explicit tick marks
