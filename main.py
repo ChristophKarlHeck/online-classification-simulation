@@ -149,7 +149,7 @@ def plot_data(df_classified: pd.DataFrame, threshold: float, normalization: str,
     axs[0].set_ylabel("Phase Probability",fontsize=10)
     axs[0].tick_params(axis='y', labelsize=10) 
 
-    axs[0].set_title(f"Online Heat Phase Classification Using Ivy Data (ID {plant_id})", fontsize=10, pad=40)
+    axs[0].set_title(f"Online Heat Phase Classification", fontsize=10, pad=40)
     axs[0].legend(fontsize=8, loc="upper center", bbox_to_anchor=(0.5, 1.25), ncol=3, framealpha=0.7)
 
 
@@ -160,7 +160,7 @@ def plot_data(df_classified: pd.DataFrame, threshold: float, normalization: str,
     # Labels and Titles
     axs[1].tick_params(axis='y', labelsize=10)
     axs[1].set_ylabel("EDP [scaled]",fontsize=10)
-    axs[1].set_title(f"Normalized CNN Input via {normalization}",fontsize=10)
+    axs[1].set_title(f"Normalized FCN Input via {normalization}",fontsize=10)
     axs[1].legend(fontsize=8, loc="lower right")
 
     # Improve spacing to prevent label cutoff

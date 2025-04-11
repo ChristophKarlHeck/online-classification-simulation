@@ -1,2 +1,4 @@
 trial,output_channels_1,output_channels_2,output_channels_3,kernel_size_1,kernel_size_2,kernel_size_3,padding_1,padding_2,padding_3,lr,batch_size,weight_decay,test_accuracy,path
-56,4,32,32,3,5,5,1,2,2,0.003565863226712421,32,5.06429602310156e-05,0.8031666874885559,/home/chris/watchplant_classification_dl/pipline_test/FCN_temp_10min_input/lightning_logs/version_57/checkpoints/epoch=358-step=215400.ckpt
+28,16,32,16,3,9,7,1,4,3,0.0004074223792914087,32,0.001677249763861777,0.8460999727249146,/home/chris/watchplant_classification_dl/pipline_test/FCN_temp_10min_input/lightning_logs/version_137/checkpoints/epoch=376-step=377000.ckpt
+
+During Runtime: 25808
