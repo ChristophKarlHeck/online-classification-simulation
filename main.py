@@ -432,25 +432,34 @@ def load_ozone_data(data_dir: str) -> pd.DataFrame:
 
 def adjusted_min_max(arr: np.ndarray) -> np.ndarray:
     """Adjusted Min-Max Normalization"""
-    #min_val = -0.2
-    #max_val = 0.2
-    min_val = arr.min()
-    max_val = arr.max()
+    min_val = -0.2
+    max_val = 0.2
+    # min_val = arr.min()
+    # max_val = arr.max()
     arr = np.array(arr, dtype=np.float32)
     return (arr - min_val) / (max_val - min_val)
 
+def min_max_1(arr: np.ndarray) -> np.ndarray:
+    """Min-Max Normalization"""
+    min_val = -200
+    max_val = 200
+    # min_val = arr.min()
+    # max_val = arr.max()
+    arr = np.array(arr, dtype=np.float32)
+    return ((arr - min_val) / (max_val - min_val))
 
-def min_max(arr: np.ndarray) -> np.ndarray:
-    """Adjusted Min-Max Normalization"""
-    #min_val = -200
-    #max_val = 200
-    min_val = arr.min()
-    max_val = arr.max()
+
+def min_max_1000(arr: np.ndarray) -> np.ndarray:
+    """Min-Max Normalization"""
+    min_val = -200
+    max_val = 200
+    # min_val = arr.min()
+    # max_val = arr.max()
     arr = np.array(arr, dtype=np.float32)
     return ((arr - min_val) / (max_val - min_val)) * 1000
 
 
-def z_score(arr: np.ndarray) -> np.ndarray:
+def z_score_1(arr: np.ndarray) -> np.ndarray:
     """
     Applies z-score normalization to the array and scales it by the given factor.
     """
@@ -463,6 +472,21 @@ def z_score(arr: np.ndarray) -> np.ndarray:
         return np.zeros_like(arr)
     
     return ((arr - mean_val) / std_val)
+
+
+def z_score_1000(arr: np.ndarray) -> np.ndarray:
+    """
+    Applies z-score normalization to the array and scales it by the given factor.
+    """
+    arr = np.array(arr, dtype=np.float32)
+    mean_val = np.mean(arr)
+    std_val = np.std(arr)
+    
+    if std_val == 0:
+        print("STOP")
+        return np.zeros_like(arr)
+    
+    return ((arr - mean_val) / std_val) * 1000
 
 
 def apply_normalization(arr: np.ndarray, normalization: str, channel: bool) -> np.ndarray:
