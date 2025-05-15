@@ -42,11 +42,11 @@ data_dirs = [
 ]
 
 normalization_dirs = [
-    "/home/chris/online-classification-simulation/FCN_temperature/global_10/none_1",
-    "/home/chris/online-classification-simulation/FCN_temperature/global_10/mm_1",
-    "/home/chris/online-classification-simulation/FCN_temperature/global_10/none_1000",
-    "/home/chris/online-classification-simulation/FCN_temperature/global_10/amm_1000",
-     "/home/chris/online-classification-simulation/FCN_temperature/global_10/mm_1000",
+    "/home/chris/online-classification-simulation/FCN_temperature/local_10/mm_1",
+    "/home/chris/online-classification-simulation/FCN_temperature/local_10/Z-score_1",
+    "/home/chris/online-classification-simulation/FCN_temperature/local_10/amm_1000",
+    "/home/chris/online-classification-simulation/FCN_temperature/local_10/mm_1000",
+     "/home/chris/online-classification-simulation/FCN_temperature/local_10/Z-score_1000",
 ]
 
 validation_methods = ["max", "min", "mean"]

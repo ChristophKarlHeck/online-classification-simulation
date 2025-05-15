@@ -432,16 +432,20 @@ def load_ozone_data(data_dir: str) -> pd.DataFrame:
 
 def adjusted_min_max(arr: np.ndarray) -> np.ndarray:
     """Adjusted Min-Max Normalization"""
-    min_val = -0.2
-    max_val = 0.2
+    #min_val = -0.2
+    #max_val = 0.2
+    min_val = arr.min()
+    max_val = arr.max()
     arr = np.array(arr, dtype=np.float32)
     return (arr - min_val) / (max_val - min_val)
 
 
 def min_max(arr: np.ndarray) -> np.ndarray:
     """Adjusted Min-Max Normalization"""
-    min_val = -200
-    max_val = 200
+    #min_val = -200
+    #max_val = 200
+    min_val = arr.min()
+    max_val = arr.max()
     arr = np.array(arr, dtype=np.float32)
     return ((arr - min_val) / (max_val - min_val)) * 1000
 
