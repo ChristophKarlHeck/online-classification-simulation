@@ -448,6 +448,11 @@ def min_max_1(arr: np.ndarray) -> np.ndarray:
     arr = np.array(arr, dtype=np.float32)
     return ((arr - min_val) / (max_val - min_val))
 
+def none_1(arr: np.ndarray) -> np.ndarray:
+    return arr
+
+def none_1000(arr: np.ndarray) -> np.ndarray:
+    return arr * 1000
 
 def min_max_1000(arr: np.ndarray) -> np.ndarray:
     """Min-Max Normalization"""
@@ -491,7 +496,7 @@ def z_score_1000(arr: np.ndarray) -> np.ndarray:
 
 def apply_normalization(arr: np.ndarray, normalization: str, channel: bool) -> np.ndarray:
     """Applies the selected normalization method."""
-    if normalization == "adjusted-min-max":
+    if normalization == "adjusted_min_max":
         return adjusted_min_max(arr)
     # elif normalization == "min-max-sliding-window-60-min":
     #     if not channel:
@@ -509,11 +514,23 @@ def apply_normalization(arr: np.ndarray, normalization: str, channel: bool) -> n
     #         online_window_ch1.update(arr)
     #         return z_score(arr, factor, online_window_ch1.get_mean(), online_window_ch1.get_std())
 
-    elif normalization == "min-max":
-        return min_max(arr)
+    elif normalization == "min_max_1":
+        return min_max_1(arr)
     
-    elif normalization == "z-score":
-        return z_score(arr)
+    elif normalization == "min_max_1000":
+        return min_max_1000(arr)
+    
+    elif normalization == "z_score_1":
+        return z_score_1(arr)
+    
+    elif normalization == "z_score_1000":
+        return z_score_1000(arr)
+    
+    elif normalization == "none_1":
+        return none_1(arr)
+    
+    elif normalization == "none_1000":
+        return none_1000(arr)
 
     else:
         raise ValueError(f"Unsupported normalization method: {normalization}")

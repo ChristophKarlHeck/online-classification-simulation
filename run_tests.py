@@ -6,10 +6,13 @@ import re
 
 
 _RULES = [
-    (re.compile(r"^none_\d+$"), "None"),
-    (re.compile(r"^mm_\d+$"),   "min-max"),
-    (re.compile(r"^amm_\d+$"),  "adjusted-min-max"),
-    (re.compile(r"^Z-score_\d+$"),  "z-score"),
+    (re.compile(r"^none_1$"), "none_1"),
+    (re.compile(r"^none_1000$"), "none_1000"),
+    (re.compile(r"^mm_1$"),   "min_max_1"),
+    (re.compile(r"^mm_1000$"),   "min_max_1000"),
+    (re.compile(r"^amm_\d+$"),  "adjusted_min_max"),
+    (re.compile(r"^Z-score_1$"),  "z_score_1"),
+    (re.compile(r"^Z-score_1000$"),  "z_score_1000"),
 ]
 
 def map_path_tag(path_str: str) -> str:
@@ -42,11 +45,11 @@ data_dirs = [
 ]
 
 normalization_dirs = [
-    "/home/chris/online-classification-simulation/FCN_temperature/local_10/mm_1",
-    "/home/chris/online-classification-simulation/FCN_temperature/local_10/Z-score_1",
-    "/home/chris/online-classification-simulation/FCN_temperature/local_10/amm_1000",
-    "/home/chris/online-classification-simulation/FCN_temperature/local_10/mm_1000",
-     "/home/chris/online-classification-simulation/FCN_temperature/local_10/Z-score_1000",
+    "/home/chris/online-classification-simulation/FCN_temperature/global_10/none_1",
+    "/home/chris/online-classification-simulation/FCN_temperature/global_10/mm_1",
+    "/home/chris/online-classification-simulation/FCN_temperature/global_10/none_1000",
+    "/home/chris/online-classification-simulation/FCN_temperature/global_10/amm_1000",
+     "/home/chris/online-classification-simulation/FCN_temperature/global_10/mm_1000",
 ]
 
 validation_methods = ["max", "min", "mean"]
