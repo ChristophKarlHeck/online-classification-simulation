@@ -1,4 +1,0 @@
-trial,output_channels,kernel_size,hidden_units,lr,batch_size,weight_decay,test_accuracy,path
-67,16,5,32,0.00196224387900538,32,9.971408694433246e-05,0.8003876209259033,/home/chris/watchplant_classification_dl/pipline_test/lightning_logs/version_106/checkpoints/epoch=87-step=9152.ckpt
-
-model.pte = 14344 B

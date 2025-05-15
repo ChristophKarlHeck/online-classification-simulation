@@ -1,4 +1,0 @@
-trial,output_channels_1,output_channels_2,output_channels_3,kernel_size_1,kernel_size_2,kernel_size_3,padding_1,padding_2,padding_3,lr,batch_size,weight_decay,test_accuracy,path
-0,4,32,16,9,5,5,4,2,2,0.0018942237403237268,64,0.00017570890593793148,0.5883185863494873,/home/chris/watchplant_classification_dl/pipline_test/FCN_temp_10min_input/lightning_logs/version_366/checkpoints/epoch=406-step=1566543.ckpt
-
-During Runtime for tensors: 25808

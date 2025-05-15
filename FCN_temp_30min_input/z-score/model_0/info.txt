@@ -1,2 +1,0 @@
-trial,output_channels_1,output_channels_2,output_channels_3,kernel_size_1,kernel_size_2,kernel_size_3,padding_1,padding_2,padding_3,lr,batch_size,weight_decay,test_accuracy,path
-9,8,8,16,3,7,3,1,3,1,0.00039377781389542056,16,0.0020448845438524417,0.9172000288963318,/home/chris/watchplant_classification_dl/pipline_test/FCN_temp_30min_input/lightning_logs/version_74/checkpoints/epoch=478-step=958000.ckpt

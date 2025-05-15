@@ -1,3 +1,0 @@
-On Tills computer
-trial,output_channels_1,output_channels_2,output_channels_3,kernel_size_1,kernel_size_2,kernel_size_3,padding_1,padding_2,padding_3,lr,batch_size,weight_decay,test_accuracy,path
-254,64,64,16,9,9,5,4,4,2,0.00017645034893092848,32,1.4497235948196831e-05,0.8226743936538696,/home/chris/watchplant_classification_dl/pipline_test/FCN_temperature/lightning_logs/version_743/checkpoints/epoch=56-step=5928.ckpt
