@@ -323,6 +323,51 @@ def load_classifier(path_to_trained_model: str):
     return model
 
 
+def extract_two_days(df: pd.DataFrame) -> pd.DataFrame:
+
+    day2_start: str = "08:00"
+    day3_end: str   = "20:30"
+
+    # 1 — ensure a DatetimeIndex (without mutating the caller’s df)
+    if not isinstance(df.index, pd.DatetimeIndex):
+        if "datetime" not in df.columns:
+            raise KeyError(
+                f"Column '{"datetime"}' not found and the index "
+                "is not a DatetimeIndex."
+            )
+        df = (
+            df.copy()                                   # protect caller’s df
+              .assign(**{"datetime": pd.to_datetime(df["datetime"])})
+              .set_index("datetime")
+        )
+    else:
+        df = df.copy()                                  # avoid in-place edits
+
+    df = df.sort_index()
+
+    # 2 — list the distinct calendar days
+    unique_days = (
+        df.index.normalize()
+          .drop_duplicates()
+          .sort_values()
+    )
+
+    if len(unique_days) < 3:
+        raise ValueError(
+            "The DataFrame must contain at least three distinct calendar days."
+        )
+
+    # 3 — build absolute start/end timestamps
+    day2 = pd.Timestamp(unique_days[1])                 # second day (index 1)
+    day3 = pd.Timestamp(unique_days[2])                 # third  day (index 2)
+
+    start_ts = day2 + pd.to_timedelta(day2_start)       # day2-08:00
+    end_ts   = day3 + pd.to_timedelta(day3_end)         # day3-20:30
+
+    # 4 — return the slice (inclusive on both ends)
+    return df.loc[start_ts : end_ts]
+
+
 def load_temp_data(data_dir: str, prefix: str) -> pd.DataFrame:
     """Loads raw data"""
     file_name = f"input_not_normalized_{prefix}.csv"
@@ -334,6 +379,7 @@ def load_temp_data(data_dir: str, prefix: str) -> pd.DataFrame:
 
     # Load the CSV file into a DataFrame
     df = pd.read_csv(file_path)
+    df = extract_two_days(df)
     pd.options.display.max_columns = None
     print("Temp:", df.head())
 
@@ -363,6 +409,7 @@ def load_ozone_data(data_dir: str) -> pd.DataFrame:
 
     # Load the CSV file into a DataFrame
     df = pd.read_csv(file_path, index_col=0)
+    df = extract_two_days(df)
     pd.options.display.max_columns = None
     print("Ozone:", df.head())
 
@@ -523,7 +570,7 @@ def main(data_dir=None, classifier_dir=None, normalization=None, prefix=None, th
 
     true_positive, false_positive, true_negative, false_negative = metrics(df_result, threshold, objective, validation_method)
     print(validation_method)
-    plot_data(df_result, threshold, normalization, objective, validation_method)
+    #plot_data(df_result, threshold, normalization, objective, validation_method)
 
     return true_positive, false_positive, true_negative, false_negative
 
