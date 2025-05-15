@@ -498,21 +498,6 @@ def apply_normalization(arr: np.ndarray, normalization: str, channel: bool) -> n
     """Applies the selected normalization method."""
     if normalization == "adjusted_min_max":
         return adjusted_min_max(arr)
-    # elif normalization == "min-max-sliding-window-60-min":
-    #     if not channel:
-    #         online_window_ch0.update(arr)
-    #         return min_max(arr, online_window_ch0.get_min_value(), online_window_ch0.get_max_value(), factor)
-    #     else:
-    #         online_window_ch1.update(arr)
-    #         return min_max(arr, online_window_ch1.get_min_value(), online_window_ch1.get_max_value(), factor)
-
-    # elif normalization == "z-score-sliding-window-60-min":
-    #     if not channel:
-    #         online_window_ch0.update(arr)
-    #         return z_score(arr, factor, online_window_ch0.get_mean(), online_window_ch0.get_std())
-    #     else:
-    #         online_window_ch1.update(arr)
-    #         return z_score(arr, factor, online_window_ch1.get_mean(), online_window_ch1.get_std())
 
     elif normalization == "min_max_1":
         return min_max_1(arr)
@@ -549,10 +534,7 @@ def online_experiment(classifier, df_input_not_normalized: pd.DataFrame, normali
     for index, row in df.iterrows():
 
         if isinstance(row["input_not_normalized_ch0"], (list, np.ndarray)):
-            if normalization != "None":
-                normalized_ch0 = apply_normalization(np.array(row["input_not_normalized_ch0"]), normalization, False)
-            else:
-                normalized_ch0 = row["input_not_normalized_ch0"]
+            normalized_ch0 = apply_normalization(np.array(row["input_not_normalized_ch0"]), normalization, False)
             input_tensor_ch0 = torch.tensor(normalized_ch0, dtype=torch.float32).unsqueeze(0).unsqueeze(0)
             with torch.no_grad():
                 prediction_ch0 = classifier(input_tensor_ch0)
@@ -562,10 +544,7 @@ def online_experiment(classifier, df_input_not_normalized: pd.DataFrame, normali
                 # Use .at[] to store the list as a single object in the cell
 
         if isinstance(row["input_not_normalized_ch1"], (list, np.ndarray)):
-            if normalization != "None":
-                normalized_ch1 = apply_normalization(np.array(row["input_not_normalized_ch1"]), normalization, True)
-            else:
-                normalized_ch1 = row["input_not_normalized_ch1"]
+            normalized_ch1 = apply_normalization(np.array(row["input_not_normalized_ch1"]), normalization, True)
             input_tensor_ch1 = torch.tensor(normalized_ch1, dtype=torch.float32).unsqueeze(0).unsqueeze(0)
             with torch.no_grad():
                 prediction_ch1 = classifier(input_tensor_ch1)
