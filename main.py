@@ -365,7 +365,9 @@ def extract_two_days(df: pd.DataFrame) -> pd.DataFrame:
     end_ts   = day3 + pd.to_timedelta(day3_end)         # day3-20:30
 
     # 4 — return the slice (inclusive on both ends)
-    return df.loc[start_ts : end_ts]
+    window = df.loc[start_ts : end_ts]
+    print(len(window))
+    return window
 
 
 def load_temp_data(data_dir: str, prefix: str) -> pd.DataFrame:
@@ -432,19 +434,19 @@ def load_ozone_data(data_dir: str) -> pd.DataFrame:
 
 def adjusted_min_max(arr: np.ndarray) -> np.ndarray:
     """Adjusted Min-Max Normalization"""
-    min_val = -0.2
-    max_val = 0.2
-    # min_val = arr.min()
-    # max_val = arr.max()
+    # min_val = -0.2
+    # max_val = 0.2
+    min_val = arr.min() / 1000
+    max_val = arr.max() / 1000
     arr = np.array(arr, dtype=np.float32)
     return (arr - min_val) / (max_val - min_val)
 
 def min_max_1(arr: np.ndarray) -> np.ndarray:
     """Min-Max Normalization"""
-    min_val = -200
-    max_val = 200
-    # min_val = arr.min()
-    # max_val = arr.max()
+    # min_val = -200
+    # max_val = 200
+    min_val = arr.min()
+    max_val = arr.max()
     arr = np.array(arr, dtype=np.float32)
     return ((arr - min_val) / (max_val - min_val))
 
@@ -456,10 +458,10 @@ def none_1000(arr: np.ndarray) -> np.ndarray:
 
 def min_max_1000(arr: np.ndarray) -> np.ndarray:
     """Min-Max Normalization"""
-    min_val = -200
-    max_val = 200
-    # min_val = arr.min()
-    # max_val = arr.max()
+    # min_val = -200
+    # max_val = 200
+    min_val = arr.min()
+    max_val = arr.max()
     arr = np.array(arr, dtype=np.float32)
     return ((arr - min_val) / (max_val - min_val)) * 1000
 
