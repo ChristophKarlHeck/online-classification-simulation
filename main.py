@@ -325,14 +325,14 @@ def load_classifier(path_to_trained_model: str):
 
 def extract_two_days(df: pd.DataFrame) -> pd.DataFrame:
 
-    day2_start: str = "08:00"
-    day3_end: str   = "20:30"
+    day2_start: str = "08:00:00"
+    day3_end: str   = "20:30:00"
 
     # 1 — ensure a DatetimeIndex (without mutating the caller’s df)
     if not isinstance(df.index, pd.DatetimeIndex):
         if "datetime" not in df.columns:
             raise KeyError(
-                f"Column '{"datetime"}' not found and the index "
+                f"Column datetime not found and the index "
                 "is not a DatetimeIndex."
             )
         df = (
@@ -504,8 +504,10 @@ def online_experiment(classifier, df_input_not_normalized: pd.DataFrame, normali
     for index, row in df.iterrows():
 
         if isinstance(row["input_not_normalized_ch0"], (list, np.ndarray)):
-            normalized_ch0 = apply_normalization(np.array(row["input_not_normalized_ch0"]), normalization, False)
-            #normalized_ch0 = row["input_not_normalized_ch0"]
+            if normalization != "None":
+                normalized_ch0 = apply_normalization(np.array(row["input_not_normalized_ch0"]), normalization, False)
+            else:
+                normalized_ch0 = row["input_not_normalized_ch0"]
             input_tensor_ch0 = torch.tensor(normalized_ch0, dtype=torch.float32).unsqueeze(0).unsqueeze(0)
             with torch.no_grad():
                 prediction_ch0 = classifier(input_tensor_ch0)
@@ -515,8 +517,10 @@ def online_experiment(classifier, df_input_not_normalized: pd.DataFrame, normali
                 # Use .at[] to store the list as a single object in the cell
 
         if isinstance(row["input_not_normalized_ch1"], (list, np.ndarray)):
-            normalized_ch1 = apply_normalization(np.array(row["input_not_normalized_ch1"]), normalization, True)
-            #normalized_ch1 = row["input_not_normalized_ch1"]
+            if normalization != "None":
+                normalized_ch1 = apply_normalization(np.array(row["input_not_normalized_ch1"]), normalization, True)
+            else:
+                normalized_ch1 = row["input_not_normalized_ch1"]
             input_tensor_ch1 = torch.tensor(normalized_ch1, dtype=torch.float32).unsqueeze(0).unsqueeze(0)
             with torch.no_grad():
                 prediction_ch1 = classifier(input_tensor_ch1)
