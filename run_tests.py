@@ -37,19 +37,19 @@ header = [
 ]
 
 data_dirs = [
-    "/home/chris/experiment_data/10_2025_02_20-2025_02_27/classification",
-    "/home/chris/experiment_data/11_2025_02_27-2025_03_04/classification",
+    "/home/chris/experiment_data/10_2025_02_20-2025_02_27/classification_60min",
+    "/home/chris/experiment_data/11_2025_02_27-2025_03_04/classification_60min",
     #"/home/chris/experiment_data/12_2025_03_06-2025_03_10/classification",
     #"/home/chris/experiment_data/13_2025_03_11-2025_03_14/classification",
-    "/home/chris/experiment_data/14_2025_03_14-2025_03_21/classification"
+    "/home/chris/experiment_data/14_2025_03_14-2025_03_21/classification_60min"
 ]
 
 normalization_dirs = [
-    "/home/chris/online-classification-simulation/FCN_temperature/local_10/mm_1",
-    "/home/chris/online-classification-simulation/FCN_temperature/local_10/Z-score_1",
-    "/home/chris/online-classification-simulation/FCN_temperature/local_10/amm_1000",
-    "/home/chris/online-classification-simulation/FCN_temperature/local_10/mm_1000",
-    "/home/chris/online-classification-simulation/FCN_temperature/local_10/Z-score_1000"
+    "/home/chris/online-classification-simulation/FCN_temperature/local_60/mm_1",
+    "/home/chris/online-classification-simulation/FCN_temperature/local_60/Z-score_1",
+    "/home/chris/online-classification-simulation/FCN_temperature/local_60/amm_1000",
+    "/home/chris/online-classification-simulation/FCN_temperature/local_60/mm_1000",
+    "/home/chris/online-classification-simulation/FCN_temperature/local_60/Z-score_1000"
 
 ]
 
